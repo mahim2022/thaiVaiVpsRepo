@@ -268,3 +268,8 @@ curl.exe -i -H "x-publishable-api-key: pk_..." http://localhost:8080/store/regio
 - [Twitter](https://twitter.com/medusajs)
 - [LinkedIn](https://www.linkedin.com/company/medusajs)
 - [Medusa Blog](https://medusajs.com/blog/)
+
+
+
+
+Inside the vps need to run medusa in production, commenting out the volumes in docker-compose.yml for medusa and also updating the dockerignore file
