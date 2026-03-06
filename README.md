@@ -75,6 +75,17 @@ docker compose up --build
 - Medusa Admin UI: `http://localhost:8080/app`
 - Store API (example): `http://localhost:8080/store/regions`
 
+### Cold start behavior (automated)
+
+On a fresh Docker reset (including volumes), startup is now automated:
+
+1. Backend runs migrations.
+2. If no regions exist, backend runs `npm run seed` automatically.
+3. Backend writes the latest publishable API key to a shared runtime file.
+4. Storefront waits for backend health and that shared key before building.
+
+This means after `docker compose down -v` and `docker compose up --build -d`, you should not need manual key copy/paste to get the storefront running.
+
 ## What is Medusa
 
 Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
@@ -273,3 +284,8 @@ curl.exe -i -H "x-publishable-api-key: pk_..." http://localhost:8080/store/regio
 
 
 Inside the vps need to run medusa in production, commenting out the volumes in docker-compose.yml for medusa and also updating the dockerignore file
+
+
+present in this volume
+cd /mnt/volume_nyc3_01/thaiVaiEcom2.0
+docker-compose up -d

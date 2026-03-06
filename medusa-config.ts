@@ -2,6 +2,8 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
+const cookieSecure = (process.env.COOKIE_SECURE || "false").toLowerCase() === "true"
+
 module.exports = defineConfig({
   admin: {
     vite: (config) => {
@@ -29,6 +31,11 @@ module.exports = defineConfig({
 
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    cookieOptions: {
+      secure: cookieSecure,
+      sameSite: "lax",
+      httpOnly: true,
+    },
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,

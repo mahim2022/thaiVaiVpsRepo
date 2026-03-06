@@ -1,8 +1,8 @@
 FROM node:20-alpine
-WORKDIR /app
+
+WORKDIR /server
 
 ENV NODE_ENV=production
-ENV PORT=8000
 
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases .yarn/releases
@@ -12,7 +12,8 @@ RUN yarn install
 COPY . .
 
 RUN sed -i 's/\r$//' ./start.prod.sh && chmod +x ./start.prod.sh
+RUN yarn build
 
-EXPOSE 8000
+EXPOSE 9000
 
-CMD ["sh", "-c", "sh /app/start.prod.sh"]
+CMD ["sh", "-c", "sed -i 's/\\r$//' /server/start.prod.sh; sh /server/start.prod.sh"]
