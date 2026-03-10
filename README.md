@@ -71,9 +71,11 @@ docker compose up --build
 
 7. Access the app through Nginx proxy routing:
 
-- Storefront: `http://localhost:8080`
-- Medusa Admin UI: `http://localhost:8080/app`
-- Store API (example): `http://localhost:8080/store/regions`
+- Storefront (HTTPS): `https://localhost`
+- Medusa Admin UI (HTTPS): `https://localhost/app`
+- Store API (example, HTTPS): `https://localhost/store/regions`
+
+HTTP on `http://localhost` now redirects to HTTPS on `https://localhost`.
 
 ### Cold start behavior (automated)
 
