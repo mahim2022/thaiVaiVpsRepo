@@ -258,6 +258,43 @@ nginx:
     - "8080:80"
 ```
 
+### Postgres `password authentication failed` noise after switching to HTTPS
+
+Symptoms:
+
+- Postgres logs show repeated `FATAL: password authentication failed for user "postgres"`.
+- Backend still builds and can read/write data.
+
+Cause:
+
+- After exposing services on public ports, internet scanners can hit Postgres (`5432`) and Redis (`6379`) directly.
+- Those failed external login attempts appear in Postgres logs, even when the app itself is healthy.
+
+What was enough to fix it:
+
+- Restrict host bindings for Postgres and Redis to localhost in `docker-compose.yml`:
+
+```yaml
+postgres:
+  ports:
+    - "127.0.0.1:5432:5432"
+
+redis:
+  ports:
+    - "127.0.0.1:6379:6379"
+```
+
+Then recreate those services:
+
+```sh
+docker compose up -d --force-recreate postgres redis
+```
+
+Result:
+
+- External scan traffic can no longer reach Postgres/Redis from the internet.
+- The auth-failure spam stops, and no backend DB credential change is required for this case.
+
 ### PowerShell `curl` header syntax on Windows
 
 On PowerShell, `curl` maps to `Invoke-WebRequest`, so Linux-style `-H` usage may fail.
