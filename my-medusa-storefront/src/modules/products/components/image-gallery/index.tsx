@@ -11,6 +11,10 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
     <div className="flex items-start relative">
       <div className="flex flex-col flex-1 small:mx-16 gap-y-4">
         {images.map((image, index) => {
+          const isStaticImage = Boolean(
+            image.url?.startsWith("/") || image.url?.includes("/static/")
+          )
+
           return (
             <Container
               key={image.id}
@@ -23,6 +27,7 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
                   priority={index <= 2 ? true : false}
                   className="absolute inset-0 rounded-rounded"
                   alt={`Product image ${index + 1}`}
+                  unoptimized={isStaticImage}
                   fill
                   sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
                   style={{

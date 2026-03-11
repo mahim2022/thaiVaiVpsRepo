@@ -7,6 +7,38 @@ checkEnvVariables()
  */
 const S3_HOSTNAME = process.env.MEDUSA_CLOUD_S3_HOSTNAME
 const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
+const MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL
+const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+
+let backendRemotePatterns = []
+
+const getRemotePattern = (value) => {
+  try {
+    const parsed = new URL(value)
+    return {
+      protocol: parsed.protocol.replace(":", ""),
+      hostname: parsed.hostname,
+    }
+  } catch {
+    return null
+  }
+}
+
+if (MEDUSA_BACKEND_URL) {
+  const backendRemotePattern = getRemotePattern(MEDUSA_BACKEND_URL)
+
+  if (backendRemotePattern) {
+    backendRemotePatterns.push(backendRemotePattern)
+  }
+}
+
+if (NEXT_PUBLIC_BASE_URL) {
+  const storefrontRemotePattern = getRemotePattern(NEXT_PUBLIC_BASE_URL)
+
+  if (storefrontRemotePattern) {
+    backendRemotePatterns.push(storefrontRemotePattern)
+  }
+}
 
 /**
  * @type {import('next').NextConfig}
@@ -30,6 +62,7 @@ const nextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
+      ...backendRemotePatterns,
       {
         protocol: "https",
         hostname: "medusa-public-images.s3.eu-west-1.amazonaws.com",

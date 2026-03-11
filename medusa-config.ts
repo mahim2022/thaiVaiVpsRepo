@@ -3,9 +3,12 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
 const cookieSecure = (process.env.COOKIE_SECURE || "false").toLowerCase() === "true"
+const medusaBackendUrl = process.env.MEDUSA_BACKEND_URL || "/"
+const localFileBackendUrl = process.env.MEDUSA_FILE_BACKEND_URL || `${medusaBackendUrl.replace(/\/$/, "")}/static`
 
 module.exports = defineConfig({
   admin: {
+    backendUrl: medusaBackendUrl,
     vite: (config) => {
       return {
         server: {
@@ -48,4 +51,22 @@ module.exports = defineConfig({
       sslmode: "disable",
     },
   }
+,
+  modules: [
+    {
+      resolve: "@medusajs/file",
+      key: "file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-local",
+            id: "local",
+            options: {
+              backend_url: localFileBackendUrl,
+            },
+          },
+        ],
+      },
+    },
+  ],
 })
