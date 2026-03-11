@@ -12,13 +12,13 @@ export default async function Footer() {
   const productCategories = await listCategories()
 
   return (
-    <footer className="border-t border-ui-border-base w-full">
+    <footer className="border-t-2 border-ui-border-base w-full mt-12 shadow-[0_-16px_26px_rgba(19,39,68,0.2)]">
       <div className="content-container flex flex-col w-full">
-        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
+        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-24">
           <div>
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
+              className="txt-compact-xlarge-plus text-ui-fg-base hover:text-ui-fg-base uppercase tracking-[0.08em]"
             >
               ThaiVai Store
             </LocalizedClientLink>
@@ -145,7 +145,7 @@ export default async function Footer() {
             </div>
           </div>
         </div>
-        <div className="flex w-full mb-16 justify-between text-ui-fg-muted">
+        <div className="flex w-full mb-10 justify-between text-ui-fg-muted border-t border-white/20 pt-6">
           <Text className="txt-compact-small">
             © {new Date().getFullYear()} ThaiVai Store. All rights reserved.
           </Text>

@@ -1,0 +1,11 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" rx="40" fill="#FB6542"/>
+  <rect x="86" y="86" width="1428" height="728" rx="36" fill="#FFF8E2"/>
+  <circle cx="1260" cy="200" r="120" fill="#FFBB00"/>
+  <rect x="160" y="168" width="320" height="460" rx="30" fill="#375E97"/>
+  <rect x="522" y="214" width="260" height="414" rx="30" fill="#FFBB00"/>
+  <rect x="828" y="182" width="236" height="446" rx="30" fill="#3F681C"/>
+  <rect x="1104" y="258" width="250" height="370" rx="30" fill="#FB6542"/>
+  <text x="170" y="732" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="60" font-weight="700">Thai snack bundles</text>
+  <text x="170" y="798" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="36" font-weight="600">chips, wafers, candy and instant noodles</text>
+</svg>

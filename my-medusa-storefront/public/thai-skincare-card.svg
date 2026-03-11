@@ -1,0 +1,12 @@
+<svg width="520" height="680" viewBox="0 0 520 680" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="520" height="680" rx="32" fill="#375E97"/>
+  <rect x="52" y="72" width="416" height="536" rx="28" fill="#FFF8E2"/>
+  <rect x="100" y="126" width="110" height="270" rx="28" fill="#FFBB00"/>
+  <rect x="230" y="164" width="78" height="232" rx="20" fill="#FB6542"/>
+  <rect x="326" y="116" width="86" height="280" rx="22" fill="#3F681C"/>
+  <circle cx="160" cy="222" r="26" fill="#FFF8E2" fill-opacity="0.55"/>
+  <circle cx="270" cy="232" r="20" fill="#FFF8E2" fill-opacity="0.55"/>
+  <circle cx="366" cy="194" r="24" fill="#FFF8E2" fill-opacity="0.55"/>
+  <text x="96" y="545" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="38" font-weight="700">Thai skincare</text>
+  <text x="96" y="590" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="28" font-weight="600">cleanse, hydrate, glow</text>
+</svg>

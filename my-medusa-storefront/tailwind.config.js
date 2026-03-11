@@ -60,13 +60,9 @@ module.exports = {
       },
       fontFamily: {
         sans: [
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
+          "Space Grotesk",
+          "Trebuchet MS",
           "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Ubuntu",
           "sans-serif",
         ],
       },

@@ -1,0 +1,21 @@
+<svg width="1200" height="1400" viewBox="0 0 1200 1400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1400" rx="48" fill="#375E97"/>
+  <circle cx="980" cy="180" r="140" fill="#FFBB00" fill-opacity="0.95"/>
+  <circle cx="210" cy="280" r="120" fill="#FB6542" fill-opacity="0.85"/>
+  <rect x="120" y="210" width="960" height="980" rx="36" fill="#FFF8E2"/>
+  <rect x="170" y="270" width="280" height="340" rx="26" fill="#FFBB00"/>
+  <rect x="490" y="270" width="540" height="180" rx="26" fill="#FB6542"/>
+  <rect x="490" y="490" width="250" height="300" rx="26" fill="#3F681C"/>
+  <rect x="780" y="490" width="250" height="300" rx="26" fill="#375E97"/>
+  <rect x="170" y="650" width="280" height="400" rx="26" fill="#FB6542"/>
+  <rect x="490" y="830" width="540" height="220" rx="26" fill="#FFBB00"/>
+  <text x="220" y="385" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="44" font-weight="700">Thai</text>
+  <text x="220" y="438" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="44" font-weight="700">snacks</text>
+  <text x="560" y="375" fill="#FFF8E2" font-family="Trebuchet MS, sans-serif" font-size="54" font-weight="700">Imported goods</text>
+  <text x="560" y="438" fill="#FFF8E2" font-family="Trebuchet MS, sans-serif" font-size="54" font-weight="700">for Bangladesh</text>
+  <text x="545" y="665" fill="#FFF8E2" font-family="Trebuchet MS, sans-serif" font-size="38" font-weight="700">Skincare</text>
+  <text x="820" y="665" fill="#FFF8E2" font-family="Trebuchet MS, sans-serif" font-size="38" font-weight="700">Home</text>
+  <text x="225" y="865" fill="#FFF8E2" font-family="Trebuchet MS, sans-serif" font-size="42" font-weight="700">Fashion</text>
+  <text x="595" y="935" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="48" font-weight="700">Weekly Thailand arrivals</text>
+  <text x="595" y="995" fill="#132744" font-family="Trebuchet MS, sans-serif" font-size="48" font-weight="700">Trusted local delivery</text>
+</svg>
