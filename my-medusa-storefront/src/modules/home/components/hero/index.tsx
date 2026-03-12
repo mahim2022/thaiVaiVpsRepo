@@ -1,4 +1,5 @@
 import { Button, Heading } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 const Hero = () => {
   return (
@@ -14,12 +15,12 @@ const Hero = () => {
             shop trusted imports with transparent pricing and fast local delivery.
           </Heading>
           <div className="home-hero-actions">
-            <a href="/store">
+            <LocalizedClientLink href="/store">
               <Button variant="secondary">Shop Thailand Products</Button>
-            </a>
-            <a href="/collections">
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/collections">
               <Button variant="transparent">See Top Categories</Button>
-            </a>
+            </LocalizedClientLink>
           </div>
           <div className="home-hero-badges" aria-label="Store promises">
             <span>100% authentic sourcing</span>
