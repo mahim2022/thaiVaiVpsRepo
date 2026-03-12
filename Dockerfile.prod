@@ -9,6 +9,9 @@ COPY .yarn/releases .yarn/releases
 
 RUN yarn install
 
+RUN find node_modules/@medusajs/dashboard -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.json" \) \
+	-exec sed -i 's/Welcome to Medusa/Welcome to thaivai/g' {} +
+
 COPY . .
 
 RUN sed -i 's/\r$//' ./start.prod.sh && chmod +x ./start.prod.sh

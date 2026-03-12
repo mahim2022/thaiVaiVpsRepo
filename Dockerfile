@@ -11,6 +11,9 @@ COPY .yarn/releases .yarn/releases
 # Install all dependencies using yarn
 RUN yarn install
 
+RUN find node_modules/@medusajs/dashboard -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.json" \) \
+	-exec sed -i 's/Welcome to Medusa/Welcome to thaivai/g' {} +
+
 # Copy source code
 COPY . .
 
