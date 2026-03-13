@@ -25,7 +25,10 @@ import {
   updateStoresStep,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
-import { ApiKey } from "../../.medusa/types/query-entry-points";
+
+type PublishableApiKey = {
+  id: string;
+};
 
 const updateStoreCurrencies = createWorkflow(
   "update-store-currencies",
@@ -67,6 +70,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
 
   logger.info("Seeding store data...");
   const [store] = await storeModuleService.listStores();
+  if (!store) {
+    throw new Error("No store found. Run initial Medusa setup before seeding.");
+  }
+
   let defaultSalesChannel = await salesChannelModuleService.listSalesChannels({
     name: "Default Sales Channel",
   });
@@ -85,6 +92,11 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     });
     defaultSalesChannel = salesChannelResult;
+  }
+
+  const defaultSalesChannelId = defaultSalesChannel[0]?.id;
+  if (!defaultSalesChannelId) {
+    throw new Error("Failed to resolve Default Sales Channel.");
   }
 
   await updateStoreCurrencies(container).run({
@@ -106,7 +118,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
     input: {
       selector: { id: store.id },
       update: {
-        default_sales_channel_id: defaultSalesChannel[0].id,
+        default_sales_channel_id: defaultSalesChannelId,
       },
     },
   });
@@ -124,6 +136,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
   const region = regionResult[0];
+  if (!region) {
+    throw new Error("Failed to create or resolve region.");
+  }
+
   logger.info("Finished seeding regions.");
 
   logger.info("Seeding tax regions...");
@@ -153,6 +169,9 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
   const stockLocation = stockLocationResult[0];
+  if (!stockLocation) {
+    throw new Error("Failed to create or resolve stock location.");
+  }
 
   await updateStoresWorkflow(container).run({
     input: {
@@ -192,6 +211,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
       });
     shippingProfile = shippingProfileResult[0];
   }
+
+    if (!shippingProfile) {
+      throw new Error("Failed to create or resolve shipping profile.");
+    }
 
   const fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
     name: "European Warehouse delivery",
@@ -233,6 +256,11 @@ export default async function seedDemoData({ container }: ExecArgs) {
     ],
   });
 
+  const fulfillmentServiceZoneId = fulfillmentSet.service_zones?.[0]?.id;
+  if (!fulfillmentServiceZoneId) {
+    throw new Error("Failed to create fulfillment service zone.");
+  }
+
   await link.create({
     [Modules.STOCK_LOCATION]: {
       stock_location_id: stockLocation.id,
@@ -248,7 +276,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
         name: "Standard Shipping",
         price_type: "flat",
         provider_id: "manual_manual",
-        service_zone_id: fulfillmentSet.service_zones[0].id,
+        service_zone_id: fulfillmentServiceZoneId,
         shipping_profile_id: shippingProfile.id,
         type: {
           label: "Standard",
@@ -286,7 +314,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
         name: "Express Shipping",
         price_type: "flat",
         provider_id: "manual_manual",
-        service_zone_id: fulfillmentSet.service_zones[0].id,
+        service_zone_id: fulfillmentServiceZoneId,
         shipping_profile_id: shippingProfile.id,
         type: {
           label: "Express",
@@ -327,13 +355,13 @@ export default async function seedDemoData({ container }: ExecArgs) {
   await linkSalesChannelsToStockLocationWorkflow(container).run({
     input: {
       id: stockLocation.id,
-      add: [defaultSalesChannel[0].id],
+      add: [defaultSalesChannelId],
     },
   });
   logger.info("Finished seeding stock location data.");
 
   logger.info("Seeding publishable API key data...");
-  let publishableApiKey: ApiKey | null = null;
+  let publishableApiKey: PublishableApiKey | null = null;
   const { data } = await query.graph({
     entity: "api_key",
     fields: ["id"],
@@ -342,7 +370,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
 
-  publishableApiKey = data?.[0];
+  publishableApiKey = (data?.[0] as PublishableApiKey | undefined) ?? null;
 
   if (!publishableApiKey) {
     const {
@@ -359,13 +387,17 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     });
 
-    publishableApiKey = publishableApiKeyResult as ApiKey;
+    publishableApiKey = { id: publishableApiKeyResult.id };
+  }
+
+  if (!publishableApiKey) {
+    throw new Error("Failed to create or resolve publishable API key.");
   }
 
   await linkSalesChannelsToApiKeyWorkflow(container).run({
     input: {
       id: publishableApiKey.id,
-      add: [defaultSalesChannel[0].id],
+      add: [defaultSalesChannelId],
     },
   });
   logger.info("Finished seeding publishable API key data.");
@@ -397,14 +429,22 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
 
+  const categoryIdByName = new Map(categoryResult.map((cat) => [cat.name, cat.id]));
+  const getCategoryIdOrThrow = (name: string) => {
+    const categoryId = categoryIdByName.get(name);
+    if (!categoryId) {
+      throw new Error(`Missing required category: ${name}`);
+    }
+
+    return categoryId;
+  };
+
   await createProductsWorkflow(container).run({
     input: {
       products: [
         {
           title: "Medusa T-Shirt",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Shirts")!.id,
-          ],
+          category_ids: [getCategoryIdOrThrow("Shirts")],
           description:
             "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
           handle: "t-shirt",
@@ -583,15 +623,13 @@ export default async function seedDemoData({ container }: ExecArgs) {
           ],
           sales_channels: [
             {
-              id: defaultSalesChannel[0].id,
+              id: defaultSalesChannelId,
             },
           ],
         },
         {
           title: "Medusa Sweatshirt",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Sweatshirts")!.id,
-          ],
+          category_ids: [getCategoryIdOrThrow("Sweatshirts")],
           description:
             "Reimagine the feeling of a classic sweatshirt. With our cotton sweatshirt, everyday essentials no longer have to be ordinary.",
           handle: "sweatshirt",
@@ -684,15 +722,13 @@ export default async function seedDemoData({ container }: ExecArgs) {
           ],
           sales_channels: [
             {
-              id: defaultSalesChannel[0].id,
+              id: defaultSalesChannelId,
             },
           ],
         },
         {
           title: "Medusa Sweatpants",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Pants")!.id,
-          ],
+          category_ids: [getCategoryIdOrThrow("Pants")],
           description:
             "Reimagine the feeling of classic sweatpants. With our cotton sweatpants, everyday essentials no longer have to be ordinary.",
           handle: "sweatpants",
@@ -785,15 +821,13 @@ export default async function seedDemoData({ container }: ExecArgs) {
           ],
           sales_channels: [
             {
-              id: defaultSalesChannel[0].id,
+              id: defaultSalesChannelId,
             },
           ],
         },
         {
           title: "Medusa Shorts",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Merch")!.id,
-          ],
+          category_ids: [getCategoryIdOrThrow("Merch")],
           description:
             "Reimagine the feeling of classic shorts. With our cotton shorts, everyday essentials no longer have to be ordinary.",
           handle: "shorts",
@@ -886,7 +920,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
           ],
           sales_channels: [
             {
-              id: defaultSalesChannel[0].id,
+              id: defaultSalesChannelId,
             },
           ],
         },
