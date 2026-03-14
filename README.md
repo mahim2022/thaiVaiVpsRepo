@@ -328,3 +328,437 @@ Inside the vps need to run medusa in production, commenting out the volumes in d
 present in this volume
 cd /mnt/volume_nyc3_01/thaiVaiEcom2.0
 docker-compose up -d
+
+---
+
+## VPS Migration: Backup and Restore
+
+This section documents the full step-by-step process for backing up this Medusa stack from one VPS and restoring it on another, including all persistent data, environment files, and certificates.
+
+### Overview
+
+The following pieces of state must be transferred:
+
+| Item | What it contains |
+|---|---|
+| `thaivaiecom20_postgres_data` Docker volume | All database tables, products, orders, users |
+| `thaivaiecom20_medusa_static` Docker volume | Built static/admin assets |
+| `thaivaiecom20_shared_config` Docker volume | Shared runtime config written by backend at startup |
+| `.env` (backend) | Database URL, Redis URL, JWT secrets, API keys |
+| `my-medusa-storefront/.env` | `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`, backend URL, etc. |
+| `nginx/certs/` | TLS certificates used by Nginx |
+| Git commit SHA | Exact code state to reproduce the build |
+
+> **Note:** The Docker volume name prefix (`thaivaiecom20`) comes from the Compose project name, which is derived from the folder name `thaiVaiEcom2.0`. If you clone into a differently named folder, use `COMPOSE_PROJECT_NAME=thaivaiecom20` before all `docker compose` commands on the new server.
+
+---
+
+### Part 1 — Create the Backup (Source VPS)
+
+Run all commands on the **current/source VPS**.
+
+#### Step 1: Check available disk space
+
+```sh
+df -h /
+docker system df
+```
+
+Ensure free space on `/` is at least 3× the sum of your volume sizes. Volume sizes are shown under `Local Volumes space usage` in `docker system df -v`.
+
+#### Step 2: Create a timestamped backup directory
+
+```sh
+export TS=$(date +%F-%H%M%S)
+export BK_DIR="/root/medusa-backup-$TS"
+mkdir -p "$BK_DIR"
+echo "Backup directory: $BK_DIR"
+```
+
+#### Step 3: Stop app containers for a consistent snapshot
+
+```sh
+cd /root/thaiVaiEcom2.0
+docker compose stop medusa storefront
+```
+
+Postgres and Redis stay running so the volume data is in a clean, committed state.
+
+#### Step 4: Archive each Docker volume
+
+```sh
+for V in thaivaiecom20_postgres_data thaivaiecom20_shared_config thaivaiecom20_medusa_static; do
+  echo "Backing up $V ..."
+  docker run --rm \
+    -v "$V":/volume \
+    -v "$BK_DIR":/backup \
+    alpine sh -c "cd /volume && tar czf /backup/$V.tar.gz ."
+done
+```
+
+#### Step 5: Save environment files, certs, and metadata
+
+```sh
+cp .env "$BK_DIR/backend.env"
+cp my-medusa-storefront/.env "$BK_DIR/storefront.env"
+cp docker-compose.yml "$BK_DIR/"
+tar czf "$BK_DIR/nginx-certs.tar.gz" nginx/certs
+git rev-parse HEAD > "$BK_DIR/git-commit.txt"
+```
+
+#### Step 6: Restart the source stack
+
+```sh
+docker compose start medusa storefront
+```
+
+#### Step 7: Verify backup contents
+
+```sh
+ls -lh "$BK_DIR"
+du -sh "$BK_DIR"
+```
+
+Expected output includes all three `.tar.gz` volume archives plus `backend.env`, `storefront.env`, `docker-compose.yml`, `nginx-certs.tar.gz`, and `git-commit.txt`. Total size is typically 10–15 MB.
+
+---
+
+### Part 2 — Copy the Backup to the New VPS
+
+Run on the **source VPS**.
+
+#### Option A: rsync (recommended — resumable, shows progress)
+
+```sh
+rsync -avz --progress \
+  -e "ssh -o StrictHostKeyChecking=accept-new" \
+  "$BK_DIR/" \
+  root@NEW_VPS_IP:/opt/$(basename "$BK_DIR")/
+```
+
+#### Option B: scp
+
+```sh
+scp -r "$BK_DIR" root@NEW_VPS_IP:/opt/
+```
+
+#### Option C: custom SSH port (e.g. 2222)
+
+```sh
+rsync -avz --progress \
+  -e "ssh -p 2222 -o StrictHostKeyChecking=accept-new" \
+  "$BK_DIR/" \
+  root@NEW_VPS_IP:/opt/$(basename "$BK_DIR")/
+```
+
+#### Verify the transfer
+
+```sh
+ssh root@NEW_VPS_IP "ls -lh /opt/$(basename "$BK_DIR")"
+```
+
+---
+
+### Part 3 — Prepare the New VPS
+
+SSH into the **new VPS** and run the following commands.
+
+#### Step 1: Check resources
+
+```sh
+df -h /      # Need ~25 GB free for build + volumes
+free -h      # Minimum 2 GB RAM; 4 GB recommended for Node build
+```
+
+> **Important:** Building the Medusa Docker image requires at least 2 GB of available RAM for Node.js. On a 1 GB VPS the build will fail with `JavaScript heap out of memory`. Use a 2 GB+ plan, or resize temporarily.
+
+#### Step 2: Add swap (strongly recommended for 2 GB VPS)
+
+```sh
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+sysctl vm.swappiness=10
+echo 'vm.swappiness=10' >> /etc/sysctl.conf
+```
+
+Verify:
+
+```sh
+free -h
+swapon --show
+```
+
+#### Step 3: Install Docker Engine and Docker Compose plugin
+
+```sh
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y ca-certificates curl gnupg lsb-release
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+  > /etc/apt/sources.list.d/docker.list
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+systemctl enable --now docker
+```
+
+Verify:
+
+```sh
+docker --version
+docker compose version
+systemctl is-active docker
+```
+
+#### Step 4: Configure GitHub SSH access (for private repo clone)
+
+If the new VPS does not already have a GitHub-authorized SSH key, either:
+
+**Option A — Copy the existing key from source VPS:**
+
+```sh
+# Run on source VPS:
+scp /root/.ssh/id_ed25519 /root/.ssh/id_ed25519.pub root@NEW_VPS_IP:/root/.ssh/
+# Run on new VPS:
+chmod 600 /root/.ssh/id_ed25519
+chmod 644 /root/.ssh/id_ed25519.pub
+```
+
+**Option B — Generate a new key on the new VPS and add it to GitHub:**
+
+```sh
+ssh-keygen -t ed25519 -C "new-vps" -f /root/.ssh/id_ed25519 -N ""
+cat /root/.ssh/id_ed25519.pub
+# Add the printed key to: https://github.com/settings/keys
+```
+
+Then trust GitHub's host key:
+
+```sh
+ssh-keyscan -H github.com >> /root/.ssh/known_hosts
+chmod 600 /root/.ssh/known_hosts
+```
+
+Verify access:
+
+```sh
+ssh -T git@github.com
+# Expected: Hi <username>! You've successfully authenticated...
+```
+
+---
+
+### Part 4 — Restore on the New VPS
+
+Run all commands on the **new VPS**. Replace `medusa-backup-2026-03-14-105418` with your actual backup folder name.
+
+```sh
+export BK_DIR=/opt/medusa-backup-2026-03-14-105418
+export APP_DIR=/root/thaiVaiEcom2.0
+export REPO=git@github.com:mahim2022/thaiVaiVpsRepo.git
+export COMMIT=$(cat "$BK_DIR/git-commit.txt")
+```
+
+#### Step 1: Clone the repository at the exact backed-up commit
+
+```sh
+git clone "$REPO" "$APP_DIR"
+cd "$APP_DIR"
+git checkout "$COMMIT"
+```
+
+#### Step 2: Restore environment files and TLS certificates
+
+```sh
+cp "$BK_DIR/backend.env"    "$APP_DIR/.env"
+cp "$BK_DIR/storefront.env" "$APP_DIR/my-medusa-storefront/.env"
+tar xzf "$BK_DIR/nginx-certs.tar.gz" -C "$APP_DIR"
+```
+
+#### Step 3: Recreate Docker volumes and restore data
+
+```sh
+for V in thaivaiecom20_postgres_data thaivaiecom20_shared_config thaivaiecom20_medusa_static; do
+  docker volume create "$V"
+  docker run --rm \
+    -v "$V":/volume \
+    -v "$BK_DIR":/backup \
+    alpine sh -c "cd /volume && tar xzf /backup/$V.tar.gz"
+done
+```
+
+> The Docker Compose warning `volume "..." already exists but was not created by Docker Compose` is harmless — the volumes were pre-created manually above and Compose will adopt them.
+
+#### Step 4: Build and start the stack
+
+```sh
+cd "$APP_DIR"
+COMPOSE_PROJECT_NAME=thaivaiecom20 docker compose up -d --build
+```
+
+The build step compiles the Medusa backend and Next.js storefront inside Docker — this can take 3–5 minutes on first run.
+
+#### Step 5: Watch startup logs
+
+```sh
+docker logs -f medusa_backend
+```
+
+Wait until you see:
+
+```
+Server started on port 9000
+```
+
+Then check the storefront:
+
+```sh
+docker logs -f medusa_storefront
+```
+
+Wait until the Next.js server is ready.
+
+---
+
+### Part 5 — Validate the Restored Stack
+
+Run on the **new VPS**.
+
+#### Container status
+
+```sh
+cd /root/thaiVaiEcom2.0
+COMPOSE_PROJECT_NAME=thaivaiecom20 docker compose ps
+```
+
+All five services should show `Up`:
+
+```
+medusa_backend      Up    0.0.0.0:9000->9000/tcp
+medusa_storefront   Up    0.0.0.0:8000->8000/tcp
+medusa_nginx        Up    0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp
+medusa_postgres     Up    127.0.0.1:5432->5432/tcp
+medusa_redis        Up    127.0.0.1:6379->6379/tcp
+```
+
+#### Backend health check
+
+```sh
+curl -i http://127.0.0.1:9000/health
+# Expected: HTTP/1.1 200 OK ... OK
+```
+
+#### Storefront check
+
+```sh
+curl -i http://127.0.0.1:8000/
+# Expected: HTTP/1.1 307 Temporary Redirect ... /dk  (locale redirect = healthy)
+```
+
+#### Nginx HTTPS check
+
+```sh
+curl -k -i https://127.0.0.1/
+# Expected: HTTP/1.1 307 ... /dk  (proxied through nginx to storefront)
+```
+
+---
+
+### Part 6 — Post-Restore Checklist
+
+- [ ] Point your domain DNS A record to the new VPS IP.
+- [ ] Replace self-signed TLS certs in `nginx/certs/` with a real certificate (e.g. Let's Encrypt via Certbot).
+- [ ] Log into Medusa Admin at `https://<your-domain>/app` and verify products, orders, and users are intact.
+- [ ] Verify the storefront at `https://<your-domain>` loads correctly.
+- [ ] Update any third-party webhook URLs (Stripe, etc.) that point to the old VPS IP.
+- [ ] Decommission the old VPS only after confirming everything is working.
+
+---
+
+### Troubleshooting
+
+#### Build fails with `JavaScript heap out of memory`
+
+The Node.js build inside Docker ran out of memory. The minimum for the Medusa build is ~2 GB RAM available at build time.
+
+Fix options:
+- Resize VPS to at least 2 GB RAM (4 GB recommended).
+- Ensure the 2 GB swap file is active (`swapon --show`).
+
+#### `volume "..." already exists but was not created by Docker Compose`
+
+This warning is expected and safe. It appears because the volumes were manually created before `docker compose up`. Compose adopts and uses them normally.
+
+#### Storefront shows 502 Bad Gateway immediately after startup
+
+The backend is still initialising (running migrations and the startup build). Wait 60–90 seconds and retry. Monitor progress with:
+
+```sh
+docker logs -f medusa_backend
+```
+
+#### `Permission denied (publickey)` when pushing/cloning GitHub repo
+
+The SSH key on the new VPS is not added to GitHub. Follow **Part 3 Step 4** above. After adding the key to GitHub, re-test with `ssh -T git@github.com`.
+
+#### Postgres auth failures in logs after migration
+
+If Postgres logs show repeated `password authentication failed`, external internet scanners are probing port `5432`. This is blocked at the application level by the `127.0.0.1:5432:5432` binding in `docker-compose.yml` (only localhost can reach Postgres). Verify with:
+
+```sh
+ss -ltn | grep 5432
+# Should show: 127.0.0.1:5432  not  0.0.0.0:5432
+```
+
+#### Admin login fails with "fetch failed" after restore
+
+**Cause:** The `.env` backed up from the source VPS has the **old VPS IP** hardcoded in several variables. The Medusa admin UI is compiled with `MEDUSA_BACKEND_URL` baked in at build time — so if this still points to the old server, every login request goes to the wrong host.
+
+Affected variables in `.env`:
+- `MEDUSA_BACKEND_URL`
+- `MEDUSA_FILE_BACKEND_URL`
+- `ADMIN_CORS`
+- `AUTH_CORS`
+- `STORE_CORS`
+
+**Fix:** After restore, before or after starting the stack, replace the old IP with the new one and rebuild the medusa container:
+
+```sh
+# Replace old IP with new IP in .env
+sed -i "s/OLD_VPS_IP/NEW_VPS_IP/g" /root/thaiVaiEcom2.0/.env
+
+# Verify the changes
+grep -E "CORS|BACKEND_URL" /root/thaiVaiEcom2.0/.env
+
+# Rebuild and restart only the medusa container (faster than full rebuild)
+cd /root/thaiVaiEcom2.0
+COMPOSE_PROJECT_NAME=thaivaiecom20 docker compose up -d --build medusa
+```
+
+Wait ~90 seconds for the container to finish its internal build and start, then retry the admin login at `https://NEW_VPS_IP/app`.
+
+**Finding the admin email:** The admin user email may differ from what you expect. Check the database directly:
+
+```sh
+docker exec medusa_postgres psql -U postgres -d medusa-store -c 'SELECT id, email FROM "user";'
+```
+
+**Resetting the admin password** (if forgotten):
+
+```sh
+# Install bcryptjs temporarily and generate a hash
+docker exec medusa_backend node -e "
+const bcrypt = require('bcrypt');
+bcrypt.hash('newpassword123', 10).then(h => console.log(h));
+"
+# Then update the hash in the DB
+docker exec medusa_postgres psql -U postgres -d medusa-store -c \
+  "UPDATE auth_identity SET provider_metadata = jsonb_set(provider_metadata, '{password}', '\"HASH_HERE\"') WHERE id IN (SELECT auth_identity_id FROM auth_identity ai JOIN \"user\" u ON u.id = ai.app_metadata->>'user_id' WHERE u.email = 'admin@example.com');"
+```
