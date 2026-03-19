@@ -258,6 +258,87 @@ nginx:
     - "8080:80"
 ```
 
+### Brevo transactional email integration runbook
+
+This section records exactly what was implemented, the issues encountered, and the quickest way to validate in future setups.
+
+#### What was implemented
+
+1. Added Brevo environment configuration in `.env.template` and runtime `.env`:
+  - `BREVO_ENABLED`
+  - `BREVO_API_KEY`
+  - `BREVO_SENDER_EMAIL`
+  - `BREVO_SENDER_NAME`
+  - `BREVO_SANDBOX_MODE`
+  - `BREVO_TIMEOUT_MS`
+  - `BREVO_TEMPLATE_ID_CUSTOMER_WELCOME`
+  - `BREVO_TEMPLATE_ID_ORDER_PLACED`
+  - `BREVO_TEMPLATE_ID_ORDER_SHIPPED`
+  - `BREVO_TEMPLATE_ID_ORDER_CANCELED`
+  - `BREVO_TEMPLATE_ID_AUTH_PASSWORD_RESET`
+
+2. Added a shared Brevo sender utility at `src/lib/email/brevo-email.ts`:
+  - Calls Brevo transactional API (`/v3/smtp/email`)
+  - Adds timeout and basic event-id dedupe
+  - Normalizes recipient extraction to avoid accidentally using sender address
+
+3. Added event subscribers:
+  - `customer.created` -> `src/subscribers/customer-welcome-email.ts`
+  - `order.placed` -> `src/subscribers/order-placed-email.ts`
+  - `shipment.created` -> `src/subscribers/order-shipped-email.ts`
+  - `order.canceled` -> `src/subscribers/order-canceled-email.ts`
+  - `auth.password_reset` -> `src/subscribers/auth-password-reset-email.ts`
+
+4. Added test tooling:
+  - CLI script: `src/scripts/send-brevo-test.ts`
+  - npm command: `yarn email:test <recipient@example.com>`
+
+#### Issues faced and how they were solved
+
+1. **Emails were initially sent to sender/test address only**
+  - Cause: manual script test used sender inbox as recipient.
+  - Fix: run test with a different recipient and validate Brevo logs.
+
+2. **`customer.created` and `order.placed` fired but no email found in event payload**
+  - Symptom in logs: `... had no email field`.
+  - Cause: event payloads can include only IDs in this runtime.
+  - Fix: subscribers now resolve email from Medusa query graph by customer/order ID.
+
+3. **Shipped email did not trigger with `fulfillment.created`**
+  - Cause: this setup emits `shipment.created` when creating shipment from admin.
+  - Fix: switched shipped subscriber event to `shipment.created`.
+
+4. **`shipment.created` still had no resolvable email**
+  - Symptom in logs showed entity id looked like `ful_...`.
+  - Cause: event payload id in this flow maps to fulfillment id.
+  - Fix: added fulfillment-to-order lookup fallback in shipped subscriber.
+
+5. **Local script failed with database timeout (`KnexTimeoutError`)**
+  - Cause: `medusa exec` loaded `.env` values that were not docker-service-safe.
+  - Fix: set docker-safe values in `.env`:
+    - `DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store`
+    - `REDIS_URL=redis://redis:6379`
+
+#### Final verified event mapping
+
+- Welcome: `customer.created`
+- Order placed: `order.placed`
+- Order shipped: `shipment.created`
+- Order canceled: `order.canceled`
+- Password reset: `auth.password_reset`
+
+#### Fast validation checklist (next time)
+
+1. Set Brevo env variables and real template IDs.
+2. Rebuild backend:
+  - `docker compose up --build -d medusa`
+3. Validate Brevo API from container:
+  - `docker exec medusa_backend node -e 'fetch("https://api.brevo.com/v3/account", { headers: { "api-key": process.env.BREVO_API_KEY || "", "accept": "application/json" } }).then(async (r) => { console.log("status=" + r.status); const d = await r.json(); console.log("email=" + (d.email || "n/a")); })'`
+4. Send direct test email:
+  - `docker exec medusa_backend npx medusa exec ./src/scripts/send-brevo-test.ts your-email@example.com`
+5. Trigger business flows and check logs:
+  - `docker logs --tail 300 medusa_backend | grep -Ei "Processing (customer.created|order.placed|shipment.created|order.canceled)|\[brevo-email\]"`
+
 ### Postgres `password authentication failed` noise after switching to HTTPS
 
 Symptoms:

@@ -61,3 +61,13 @@ Then, pass the arguments in the `exec` command after the file path:
 ```bash
 npx medusa exec ./src/scripts/my-script.ts arg1 arg2
 ```
+
+## Brevo Test Script
+
+Use this project's Brevo test script to send a transactional template email:
+
+```bash
+yarn email:test your-email@example.com
+```
+
+The script uses the `customer_welcome` template key and reads Brevo configuration from environment variables.

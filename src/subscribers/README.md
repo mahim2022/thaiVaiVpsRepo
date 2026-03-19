@@ -24,6 +24,32 @@ export const config: SubscriberConfig = {
 }
 ```
 
+## Brevo Transactional Emails
+
+This project includes Brevo transactional email subscribers:
+
+- `customer.created` -> welcome email
+- `order.placed` -> order confirmation email
+- `shipment.created` -> shipped email
+- `order.canceled` -> canceled email
+- `auth.password_reset` -> password reset email
+
+Required environment variables:
+
+- `BREVO_ENABLED`
+- `BREVO_API_KEY`
+- `BREVO_SENDER_EMAIL`
+- `BREVO_SENDER_NAME`
+- `BREVO_SANDBOX_MODE`
+- `BREVO_TIMEOUT_MS`
+- `BREVO_TEMPLATE_ID_CUSTOMER_WELCOME`
+- `BREVO_TEMPLATE_ID_ORDER_PLACED`
+- `BREVO_TEMPLATE_ID_ORDER_SHIPPED`
+- `BREVO_TEMPLATE_ID_ORDER_CANCELED`
+- `BREVO_TEMPLATE_ID_AUTH_PASSWORD_RESET`
+
+Template IDs are configured in `.env.template` and `.env`. Keep these synced with your Brevo template IDs.
+
 A subscriber file must export:
 
 - The subscriber function that is an asynchronous function executed whenever the associated event is triggered.
