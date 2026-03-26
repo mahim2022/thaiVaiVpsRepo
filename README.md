@@ -37,6 +37,31 @@
 This starter is compatible with versions >= 2 of `@medusajs/medusa`. 
 
 ## Getting Started
+## Safe Disk Cleanup Process
+
+If you run out of disk space during development (especially with Docker/BuildKit), follow these steps for safe cleanup. This will free up space without affecting your Medusa app settings or project files.
+
+### 1. Clean up Docker
+Removes unused containers, images, networks, and volumes:
+
+```bash
+docker system prune -af --volumes
+```
+
+### 2. Clean development caches
+Removes old cache files for yarn, npm, VS Code, and general cache:
+
+```bash
+rm -rf /root/.yarn/* /root/.npm/* /root/.vscode-server/* /root/.cache/*
+```
+
+### Precautions
+- Do NOT delete your project directory (e.g., /root/thaiVaiEcom2.0).
+- Do NOT remove Docker volumes used for your database/storage if you need persistent data.
+- These steps are safe for most development setups and will not affect your Medusa app’s configuration or code.
+
+### For Copilot reuse
+You can safely run these commands whenever disk space is low. They are suitable for Medusa development environments and Docker-based projects.
 
 Visit the [Quickstart Guide](https://docs.medusajs.com/learn/installation) to set up a server.
 

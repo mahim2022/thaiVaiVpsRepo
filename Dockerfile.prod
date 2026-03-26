@@ -1,22 +1,53 @@
-FROM node:20-alpine
+FROM node:20-alpine AS dependencies
+
+WORKDIR /server
+
+ENV NODE_ENV=production
+ENV YARN_ENABLE_IMMUTABLE_INSTALLS=true
+
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn/releases .yarn/releases
+
+RUN yarn install --immutable
+FROM node:20-alpine AS builder
 
 WORKDIR /server
 
 ENV NODE_ENV=production
 
+COPY --from=dependencies /server/node_modules ./node_modules
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases .yarn/releases
 
-RUN yarn install
-
 RUN find node_modules/@medusajs/dashboard -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.json" \) \
-	-exec sed -i 's/Welcome to Medusa/Welcome to thaivai/g' {} +
+-exec sed -i 's/Welcome to Medusa/Welcome to thaivai/g' {} +
 
 COPY . .
 
-RUN sed -i 's/\r$//' ./start.prod.sh && chmod +x ./start.prod.sh
 RUN yarn build
+
+FROM node:20-alpine AS runtime
+
+WORKDIR /server
+
+ENV NODE_ENV=production
+
+# Copy production dependencies from dependencies stage (no build tools)
+COPY --from=dependencies /server/node_modules ./node_modules
+
+# Copy built artifacts from builder
+COPY --from=builder /server/.medusa ./.medusa
+
+# Copy source code and config files (needed for Medusa runtime)
+COPY --from=builder /server/src ./src
+COPY --from=builder /server/medusa-config.js .
+COPY --from=builder /server/package.json .
+COPY --from=builder /server/tsconfig.json .
+COPY --from=builder /server/start.prod.sh .
+
+# Make start.prod.sh executable
+RUN sed -i 's/\r$//' ./start.prod.sh && chmod +x ./start.prod.sh
 
 EXPOSE 9000
 
-CMD ["sh", "-c", "sed -i 's/\\r$//' /server/start.prod.sh; sh /server/start.prod.sh"]
+CMD ["sh", "-c", "sh /server/start.prod.sh"]

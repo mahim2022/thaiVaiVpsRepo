@@ -4,6 +4,17 @@ import "styles/globals.css"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
+  openGraph: {
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    images: ["/twitter-image"],
+  },
 }
 
 export default function RootLayout(props: { children: React.ReactNode }) {

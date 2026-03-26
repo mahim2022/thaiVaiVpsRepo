@@ -12,3 +12,9 @@ coverage
 *.log
 dist
 build
+my-medusa-storefront/node_modules
+my-medusa-storefront/.next
+my-medusa-storefront/out
+my-medusa-storefront/.turbo
+# Exclude admin dashboard assets if not needed for build
+.medusa/server/public/admin/assets/

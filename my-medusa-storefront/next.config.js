@@ -45,9 +45,10 @@ if (NEXT_PUBLIC_BASE_URL) {
  */
 const nextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   logging: {
     fetches: {
-      fullUrl: true,
+      fullUrl: process.env.NODE_ENV !== "production",
     },
   },
   eslint: {

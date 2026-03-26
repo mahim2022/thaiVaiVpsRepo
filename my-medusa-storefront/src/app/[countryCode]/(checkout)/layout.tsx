@@ -1,5 +1,6 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
+import BrandMark from "@modules/layout/components/brand-mark"
 import MedusaCTA from "@modules/layout/components/medusa-cta"
 
 export default function CheckoutLayout({
@@ -26,10 +27,10 @@ export default function CheckoutLayout({
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"
-            className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
+            className="text-ui-fg-subtle hover:text-ui-fg-base inline-flex items-center"
             data-testid="store-link"
           >
-            thaiVai
+            <BrandMark />
           </LocalizedClientLink>
           <div className="flex-1 basis-0" />
         </nav>

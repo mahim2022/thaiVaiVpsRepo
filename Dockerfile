@@ -8,13 +8,17 @@ WORKDIR /server
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases .yarn/releases
 
-# Install all dependencies using yarn
-RUN yarn install
+ENV YARN_ENABLE_IMMUTABLE_INSTALLS=true
+# Install all dependencies using yarn with immutable flag
+RUN yarn install --immutable
+# Docker BuildKit instructions (for advanced caching)
+# To build with BuildKit, use:
+# DOCKER_BUILDKIT=1 docker build -f Dockerfile .
 
 RUN find node_modules/@medusajs/dashboard -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.json" \) \
 	-exec sed -i 's/Welcome to Medusa/Welcome to thaivai/g' {} +
 
-# Copy source code
+## Copy everything except admin assets (excluded by .dockerignore)
 COPY . .
 
 # Normalize line endings and ensure startup script is executable

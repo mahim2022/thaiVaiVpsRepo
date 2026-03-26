@@ -3,6 +3,7 @@ import { listCollections } from "@lib/data/collections"
 import { Text, clx } from "@medusajs/ui"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import BrandMark from "@modules/layout/components/brand-mark"
 import MedusaCTA from "@modules/layout/components/medusa-cta"
 
 export default async function Footer() {
@@ -18,9 +19,9 @@ export default async function Footer() {
           <div>
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus text-ui-fg-base hover:text-ui-fg-base uppercase tracking-[0.08em]"
+              className="text-ui-fg-base hover:text-ui-fg-base inline-flex items-center"
             >
-              ThaiVai Store
+              <BrandMark />
             </LocalizedClientLink>
           </div>
           <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
@@ -109,7 +110,10 @@ export default async function Footer() {
               </div>
             )}
             <div className="flex flex-col gap-y-2">
-              <span className="txt-small-plus txt-ui-fg-base">ThaiVai Store</span>
+              <span className="txt-small-plus txt-ui-fg-base inline-flex items-center gap-2">
+                <BrandMark imageClassName="h-5 w-5" className="inline-flex" />
+                ThaiVai Store
+              </span>
               <ul className="grid grid-cols-1 gap-y-2 text-ui-fg-subtle txt-small">
                 <li>
                   <a

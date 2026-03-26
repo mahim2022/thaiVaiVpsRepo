@@ -5,6 +5,7 @@ import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import BrandMark from "@modules/layout/components/brand-mark"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 
@@ -28,10 +29,10 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus hover:text-white uppercase tracking-[0.08em]"
+              className="hover:text-white inline-flex items-center"
               data-testid="nav-store-link"
             >
-              ThaiVai Store
+              <BrandMark priority />
             </LocalizedClientLink>
           </div>
 
