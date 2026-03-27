@@ -102,6 +102,34 @@ docker compose up --build
 
 HTTP on `http://localhost` now redirects to HTTPS on `https://localhost`.
 
+### Separate Docker development environment (non-production)
+
+This project now has a dedicated development compose file at `docker-compose.dev.yml`.
+It does not modify or replace production settings in `docker-compose.yml`.
+
+Start development stack:
+
+```sh
+yarn docker:dev:up
+```
+
+Stop development stack:
+
+```sh
+yarn docker:dev:down
+```
+
+Dev endpoints:
+
+- Storefront: `http://localhost:8000`
+- Medusa backend API: `http://localhost:9000`
+- Medusa admin dev UI (Vite): `http://localhost:5173`
+
+Notes:
+
+- Backend runs in development mode with bind mounts for live code changes.
+- Storefront starts in development mode and auto-loads a publishable key from the local database.
+
 ### Cold start behavior (automated)
 
 On a fresh Docker reset (including volumes), startup is now automated:
