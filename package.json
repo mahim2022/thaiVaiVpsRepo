@@ -27,10 +27,10 @@
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
   },
   "dependencies": {
-    "@medusajs/admin-sdk": "2.13.4",
-    "@medusajs/cli": "2.13.4",
-    "@medusajs/framework": "2.13.4",
-    "@medusajs/medusa": "2.13.4"
+    "@medusajs/admin-sdk": "2.13.5",
+    "@medusajs/cli": "2.13.5",
+    "@medusajs/framework": "2.13.5",
+    "@medusajs/medusa": "2.13.5"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.13.4",
