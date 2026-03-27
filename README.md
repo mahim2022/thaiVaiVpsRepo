@@ -141,6 +141,37 @@ On a fresh Docker reset (including volumes), startup is now automated:
 
 This means after `docker compose down -v` and `docker compose up --build -d`, you should not need manual key copy/paste to get the storefront running.
 
+## Recent implemented changes (March 2026)
+
+The following updates were implemented and verified in this repository:
+
+### Infrastructure and deployment
+
+- Added prebuilt startup workflow script: `scripts/docker-up-prebuilt.sh`.
+- Improved container startup order and health-wait behavior for backend/storefront.
+- Updated reverse-proxy routing and HTTPS-focused access behavior in Nginx.
+- Added resource-oriented Docker/runtime adjustments for more stable startup.
+
+### Backend
+
+- Updated production Docker build flow in `Dockerfile.prod` to use multi-stage structure.
+- Added runtime-safe backend config file `medusa-config.js`.
+- Updated production startup/bootstrap behavior in `start.prod.sh`.
+- Integrated Brevo email infrastructure and event subscriber handlers.
+
+### Storefront
+
+- Updated storefront Docker build for optimized production image behavior.
+- Updated `next.config.js` and production startup flow for prebuilt runtime usage.
+- Added brand/logo assets and social image generators (`icon`, `opengraph`, `twitter`).
+- Updated layout and checkout branding components/icons for the ThaiVai storefront.
+
+### Validation outcome
+
+- Full cold rebuild was executed after Docker cache cleanup.
+- Backend and storefront came up successfully.
+- Core endpoints responded as expected through the proxy and service ports.
+
 ## What is Medusa
 
 Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
