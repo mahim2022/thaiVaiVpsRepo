@@ -172,6 +172,100 @@ The following updates were implemented and verified in this repository:
 - Backend and storefront came up successfully.
 - Core endpoints responded as expected through the proxy and service ports.
 
+## Pre-Delivery Stress Testing Plan
+
+This project is expected to start with low traffic. The goal of stress testing is to verify reliability, correctness, and recovery of core commerce flows before delivery.
+
+### Scope
+
+- Product creation at scale with images.
+- Store browsing and cart operations under load.
+- Checkout and order placement under load.
+- Shipping and order state progression under load.
+- Recovery behavior when a dependency is restarted during active traffic.
+
+### Target test volumes
+
+- Catalog stage A: 500 products, 3 images each.
+- Catalog stage B: 1,000 products, 3-5 images each.
+- Catalog stage C (optional stretch): 2,000 products, 5 images each.
+- Transaction load: 20 concurrent users (15 min), 50 concurrent users (15 min), 100 concurrent users (10 min).
+
+### Execution phases
+
+1. Baseline startup and health
+  - Bring stack up from clean state.
+  - Validate service health and core endpoint responses.
+  - Capture idle resource baseline.
+
+2. Catalog bulk ingestion
+  - Load products in batches using workflow-based creation.
+  - Validate product count and image availability after each batch.
+  - Confirm storefront list/read behavior remains responsive.
+
+3. Transaction stress
+  - Run realistic shopper flows in parallel:
+    - browse products
+    - add to cart
+    - checkout/place order
+    - verify order retrieval/state
+  - Run shipping/fulfillment updates while new orders are being created.
+
+4. Recovery drill
+  - During active load, restart one dependency (backend or redis) once.
+  - Validate automatic recovery and continued order processing.
+
+5. Stability confirmation
+  - Re-run peak scenario twice.
+  - Accept only if both runs pass threshold gates.
+
+### Suggested command checklist
+
+Start and baseline:
+
+```sh
+docker compose down -v
+docker compose up -d
+docker compose ps
+npm run test:integration:http
+docker stats --no-stream
+```
+
+Catalog ingestion (existing seed-based baseline):
+
+```sh
+npm run seed
+```
+
+During stress runs, keep these in separate terminals:
+
+```sh
+docker stats
+docker logs -f medusa_backend
+docker logs -f medusa_postgres
+docker logs -f medusa_redis
+```
+
+### Pass/fail gates
+
+- Error rate under 1% for critical flows.
+- Order success rate at or above 99%.
+- No container OOM or restart loop.
+- Product and order data remain consistent after load.
+- Shipping states progress correctly for sampled orders.
+- System recovers after one injected restart and continues processing.
+
+### Delivery timeline
+
+- Day 1: baseline + catalog bulk tests + first transaction run.
+- Day 2: recovery drill + peak re-runs + final acceptance summary.
+
+### Evidence to retain
+
+- Resource snapshots from before, during, and after load.
+- Error logs from backend, database, and cache.
+- Summary report with throughput, latency, error rate, and pass/fail outcome.
+
 ## What is Medusa
 
 Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
