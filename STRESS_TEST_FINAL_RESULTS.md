@@ -1,4 +1,34 @@
 # Medusa Stress Test - Final Results Report
+
+## Update: Transaction Stress Profile (20 Users)
+**Date:** April 1, 2026
+**Command:** `yarn stress-test:tx:20`
+**Status:** ✅ SUCCESSFUL
+
+### Summary
+
+| Metric | Result |
+|--------|--------|
+| Concurrency | 20 virtual shoppers |
+| Duration | 909 seconds (15 min profile) |
+| Total Flows | 1,159 |
+| Completed Flows | 1,159 |
+| Failed Flows | 0 |
+| Flow Success Rate | 100.00% |
+| Throughput | 1.28 flows/sec |
+| HTTP 4xx | 0 |
+| HTTP 5xx | 0 |
+| Network/Timeout Errors | 0 |
+| p50 Flow Latency | 15,289 ms |
+| p95 Flow Latency | 19,958 ms |
+| p99 Flow Latency | 21,568 ms |
+
+### Recovery Validation Snapshot
+
+The recovery drill (`yarn stress-test:tx:recovery`) was also validated in this cycle with an injected Redis restart during active traffic and completed with 100% successful flows and zero request errors.
+
+---
+
 **Date:** March 28, 2026  
 **Test Duration:** 81.44 seconds  
 **Status:** ✅ SUCCESSFUL

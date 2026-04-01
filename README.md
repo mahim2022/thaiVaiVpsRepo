@@ -246,6 +246,43 @@ docker logs -f medusa_postgres
 docker logs -f medusa_redis
 ```
 
+Transaction stress (new automation):
+
+```sh
+# 20 concurrent users for 15 minutes
+yarn stress-test:tx:20
+
+# 50 concurrent users for 15 minutes
+yarn stress-test:tx:50
+
+# 100 concurrent users for 10 minutes
+yarn stress-test:tx:100
+```
+
+Recovery drill during active traffic (single dependency restart):
+
+```sh
+# Default target: medusa_redis, restart at 120s
+yarn stress-test:tx:recovery
+
+# Custom target and injection timing
+RECOVERY_TARGET_CONTAINER=medusa_backend RECOVERY_INJECT_AFTER_SECONDS=90 \
+  yarn stress-test:tx:recovery
+```
+
+Optional knobs for transaction stress runner:
+
+```sh
+STRESS_BASE_URL=http://localhost:9000
+STRESS_PUBLISHABLE_KEY=pk_xxx
+STRESS_CHECKOUT_ATTEMPT=true
+STRESS_REQUEST_TIMEOUT_MS=15000
+```
+
+Notes:
+- The transaction runner simulates browse -> cart create -> add line item and reports success/failure and latency percentiles.
+- Checkout completion is optional and disabled by default because payment/shipping setup differs by environment.
+
 ### Pass/fail gates
 
 - Error rate under 1% for critical flows.
