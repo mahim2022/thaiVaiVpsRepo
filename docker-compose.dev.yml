@@ -23,6 +23,7 @@ services:
       - medusa_network_dev
 
   medusa:
+    image: thaivaiecom20-medusa-dev
     build:
       context: .
       dockerfile: Dockerfile

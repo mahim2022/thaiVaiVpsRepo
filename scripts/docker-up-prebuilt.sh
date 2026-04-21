@@ -5,6 +5,9 @@ set -e
 ROOT_DIR=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
+echo "Stopping the dev stack if it is running..."
+docker compose -f docker-compose.dev.yml down --remove-orphans >/dev/null 2>&1 || true
+
 echo "Starting base services (postgres, redis, medusa)..."
 docker compose up -d --build postgres redis medusa
 

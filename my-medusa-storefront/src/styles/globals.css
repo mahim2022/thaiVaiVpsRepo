@@ -723,6 +723,108 @@
     color: #A69C8C;
   }
 
+  .cart-shell,
+  .checkout-shell {
+    background:
+      radial-gradient(circle at 12% 4%, rgba(44, 110, 73, 0.14) 0, rgba(44, 110, 73, 0) 42%),
+      radial-gradient(circle at 90% 12%, rgba(224, 122, 95, 0.12) 0, rgba(224, 122, 95, 0) 45%),
+      linear-gradient(160deg, rgba(245, 245, 240, 0.98), rgba(245, 245, 240, 0.95));
+  }
+
+  .checkout-topbar {
+    background: linear-gradient(92deg, rgba(44, 110, 73, 0.1), rgba(224, 122, 95, 0.1));
+  }
+
+  .cart-theme-panel,
+  .checkout-theme-panel,
+  .checkout-step-card,
+  .checkout-inline-block {
+    background: rgba(245, 245, 240, 0.86);
+    border: 2px solid rgba(166, 156, 140, 0.6);
+    border-radius: 20px;
+    box-shadow: 0 14px 24px var(--ui-shadow-soft);
+  }
+
+  .cart-theme-panel,
+  .checkout-theme-panel,
+  .checkout-step-card {
+    padding: clamp(1rem, 2.2vw, 1.4rem);
+  }
+
+  .checkout-inline-block {
+    padding: 0.8rem 1rem;
+  }
+
+  .checkout-shell .checkout-step-card h2,
+  .checkout-shell .checkout-theme-panel h2,
+  .cart-shell .cart-theme-panel h2 {
+    color: #1A1A1A;
+  }
+
+  .checkout-shell .checkout-step-card [data-testid$="-radio"],
+  .checkout-shell .checkout-step-card [data-testid$="-option-radio"],
+  .checkout-shell .checkout-step-card [data-testid="payment-container"] {
+    background: rgba(245, 245, 240, 0.7);
+    border-color: rgba(166, 156, 140, 0.7);
+  }
+
+  .cart-shell [data-testid="cart-container"] table,
+  .checkout-shell [data-testid="checkout-container"] table {
+    border-color: rgba(166, 156, 140, 0.55);
+  }
+
+  .cart-shell [data-testid="cart-container"] tr,
+  .checkout-shell [data-testid="checkout-container"] tr {
+    border-color: rgba(166, 156, 140, 0.45);
+  }
+
+  .cart-shell [data-testid="cart-container"] .border-gray-200,
+  .checkout-shell [data-testid="checkout-container"] .border-gray-200 {
+    border-color: rgba(166, 156, 140, 0.6) !important;
+  }
+
+  .checkout-shell .checkout-step-card button[data-testid^="submit-"],
+  .cart-shell button[data-testid="checkout-button"] {
+    box-shadow: 0 10px 18px rgba(26, 26, 26, 0.16);
+  }
+
+  .order-confirm-shell {
+    background:
+      radial-gradient(circle at 14% 6%, rgba(44, 110, 73, 0.13) 0, rgba(44, 110, 73, 0) 40%),
+      radial-gradient(circle at 88% 14%, rgba(224, 122, 95, 0.12) 0, rgba(224, 122, 95, 0) 44%),
+      linear-gradient(165deg, rgba(245, 245, 240, 0.97), rgba(245, 245, 240, 0.94));
+  }
+
+  .order-confirm-panel {
+    background: rgba(245, 245, 240, 0.86);
+    border: 2px solid rgba(166, 156, 140, 0.64);
+    border-radius: 24px;
+    box-shadow: 0 16px 30px var(--ui-shadow-soft);
+    padding-inline: clamp(1rem, 2.8vw, 1.6rem);
+  }
+
+  .order-confirm-hero {
+    background: linear-gradient(128deg, rgba(44, 110, 73, 0.16), rgba(224, 122, 95, 0.14));
+    border: 2px solid rgba(166, 156, 140, 0.56);
+    border-radius: 18px;
+    padding: 1rem clamp(0.95rem, 2vw, 1.3rem);
+  }
+
+  .order-confirm-block {
+    background: rgba(245, 245, 240, 0.72);
+    border: 2px solid rgba(166, 156, 140, 0.54);
+    border-radius: 18px;
+    padding: clamp(0.85rem, 1.8vw, 1.15rem);
+  }
+
+  .order-confirm-panel .border-gray-200 {
+    border-color: rgba(166, 156, 140, 0.58) !important;
+  }
+
+  .order-confirm-panel [data-testid="products-table"] tr {
+    border-color: rgba(166, 156, 140, 0.5);
+  }
+
   @media (min-width: 1024px) {
     .home-hero-grid {
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
@@ -887,6 +989,227 @@
     100% {
       opacity: 1;
       transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-down {
+    0% {
+      opacity: 0;
+      transform: translateY(-40px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-left {
+    0% {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fade-in-right {
+    0% {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounce-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-up {
+    0% {
+      transform: translateY(60px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-left {
+    0% {
+      transform: translateX(-60px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-right {
+    0% {
+      transform: translateX(60px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0% {
+      box-shadow: 0 0 0 rgba(11, 79, 63, 0.4);
+    }
+
+    50% {
+      box-shadow: 0 0 20px 5px rgba(11, 79, 63, 0.2);
+    }
+
+    100% {
+      box-shadow: 0 0 0 rgba(11, 79, 63, 0.4);
+    }
+  }
+
+  @keyframes heartbeat {
+    0% {
+      transform: scale(1);
+    }
+
+    14% {
+      transform: scale(1.1);
+    }
+
+    28% {
+      transform: scale(1);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes spin-slow {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes flip {
+    0% {
+      transform: rotateY(0deg);
+    }
+
+    100% {
+      transform: rotateY(360deg);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes float-up {
+    0% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes swing {
+    0%, 100% {
+      transform: rotate(0deg);
+      transform-origin: center top;
+    }
+
+    50% {
+      transform: rotate(15deg);
+    }
+  }
+
+  @keyframes jello {
+    0%, 11.1%, 100% {
+      transform: none;
+    }
+
+    22.2% {
+      transform: skewX(-12.5deg) skewY(-12.5deg);
+    }
+
+    33.3% {
+      transform: skewX(6.25deg) skewY(6.25deg);
+    }
+
+    44.4% {
+      transform: skewX(-3.125deg) skewY(-3.125deg);
+    }
+
+    55.5% {
+      transform: skewX(1.5625deg) skewY(1.5625deg);
+    }
+
+    66.6% {
+      transform: skewX(-0.78125deg) skewY(-0.78125deg);
+    }
+
+    77.7% {
+      transform: skewX(0.390625deg) skewY(0.390625deg);
+    }
+
+    88.8% {
+      transform: skewX(-0.1953125deg) skewY(-0.1953125deg);
     }
   }
 }

@@ -31,7 +31,7 @@
     "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit",
     "docker:up": "sh ./scripts/docker-up-prebuilt.sh",
     "docker:down": "docker compose down",
-    "docker:dev:up": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:up": "sh ./scripts/docker-up-dev.sh",
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
   },
   "dependencies": {

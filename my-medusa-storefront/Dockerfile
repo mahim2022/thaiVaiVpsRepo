@@ -16,6 +16,11 @@ ARG MEDUSA_BACKEND_URL=https://summithire.tech
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+RUN if [ -z "$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY" ]; then \
+	echo "Missing NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY for storefront production build. Use the prebuilt prod workflow or pass the build arg before building."; \
+	exit 1; \
+fi
+
 RUN NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY" MEDUSA_BACKEND_URL="$MEDUSA_BACKEND_URL" NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS="--max-old-space-size=512" yarn build
 
 FROM node:20-alpine AS runner

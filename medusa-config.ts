@@ -5,30 +5,39 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 const cookieSecure = (process.env.COOKIE_SECURE || "false").toLowerCase() === "true"
 const medusaBackendUrl = process.env.MEDUSA_BACKEND_URL || "/"
 const localFileBackendUrl = process.env.MEDUSA_FILE_BACKEND_URL || `${medusaBackendUrl.replace(/\/$/, "")}/static`
+const adminAllowedHosts = (process.env.ADMIN_ALLOWED_HOSTS || "")
+  .split(",")
+  .map((host) => host.trim())
+  .filter(Boolean)
+const isDevelopment = (process.env.NODE_ENV || "development") === "development"
 
 module.exports = defineConfig({
   admin: {
     backendUrl: medusaBackendUrl,
-    vite: (config) => {
-      return {
-        server: {
-          host: "0.0.0.0",
-          // Allow all hosts when running in Docker (development mode)
-          // In production, this should be more restrictive
-          allowedHosts: [
-            "localhost",
-            ".localhost",
-            "127.0.0.1",
-          ],
-          hmr: {
-            // HMR websocket port inside container
-            port: 5173,
-            // Port browser connects to (exposed in docker-compose.yml)
-            clientPort: 5173,
+    ...(isDevelopment
+      ? {
+          vite: () => {
+            return {
+              server: {
+                host: "0.0.0.0",
+                // Dev-only host/HMR overrides for Docker local development.
+                allowedHosts: [
+                  "localhost",
+                  ".localhost",
+                  "127.0.0.1",
+                  "summithire.tech",
+                  "www.summithire.tech",
+                  ...adminAllowedHosts,
+                ],
+                hmr: {
+                  port: 5173,
+                  clientPort: 5173,
+                },
+              },
+            }
           },
         }
-      }
-    }
+      : {}),
   },
 
 

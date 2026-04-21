@@ -130,6 +130,20 @@ Notes:
 - Backend runs in development mode with bind mounts for live code changes.
 - Storefront starts in development mode and auto-loads a publishable key from the local database.
 
+### Switching between dev and prod
+
+Use the wrapper scripts so the inactive stack is stopped before the new one starts.
+
+- Dev to prod: `yarn run docker:up`
+- Prod to dev: `yarn docker:dev:up`
+
+Why this matters:
+
+- The prod storefront is built with the live publishable key at image build time.
+- If you skip the wrapper and run a raw `docker compose up --build`, the storefront can be rebuilt without the right key and the frontend will look broken even though the backend is healthy.
+- The wrappers also avoid port conflicts between the two compose files.
+- Dev and prod now use different Docker image names (`*-dev` and `*-prod`) to prevent prod from accidentally reusing a dev-built Medusa image.
+
 ### Cold start behavior (automated)
 
 On a fresh Docker reset (including volumes), startup is now automated:
@@ -139,7 +153,59 @@ On a fresh Docker reset (including volumes), startup is now automated:
 3. Backend writes the latest publishable API key to a shared runtime file.
 4. Storefront waits for backend health and that shared key before building.
 
-This means after `docker compose down -v` and `docker compose up --build -d`, you should not need manual key copy/paste to get the storefront running.
+This means after `docker compose down -v` and `yarn run docker:up`, you should not need manual key copy/paste to get the storefront running.
+
+If you start the prod stack with raw compose commands instead of the wrapper, you must still supply the storefront publishable key at build time.
+
+## Home V2 dynamic image collections (Medusa)
+
+Home V2 image sections are now driven by Medusa product collections so content can be changed from Admin without code edits.
+
+### Required collection handles
+
+Create these collections in Medusa Admin using the exact handles below:
+
+- `home-v2-hero-collage`
+- `home-v2-sourcing`
+- `home-v2-promo`
+- `home-v2-campaign-collage`
+
+### How each section maps
+
+- Hero collage section: uses up to 4 images from `home-v2-hero-collage`.
+- Sourcing section: uses the first product image from `home-v2-sourcing`.
+- Promo illustration section: uses the first product image from `home-v2-promo`.
+- Campaign collage section: uses up to 4 images from `home-v2-campaign-collage`.
+
+Image source priority for each product is:
+
+1. Product `thumbnail`
+2. First item in `images`
+
+If no valid product image exists for a section, the storefront shows the existing placeholder block.
+
+### Content update process (Admin)
+
+1. Open Medusa Admin.
+2. Go to Product Collections.
+3. Open one of the Home V2 collections by handle.
+4. Add or remove products to control what appears on the homepage.
+5. Reorder products to control priority (first product is used for sourcing/promo).
+6. Save changes.
+
+Expected refresh behavior:
+
+- Storefront data is cached briefly and revalidated automatically.
+- Changes typically appear within about 1-2 minutes.
+
+### Notes and recommendations
+
+- Prefer products with high-quality `thumbnail` images for best results.
+- For collage sections, keep at least 4 products in collection to avoid repeated visuals.
+- If a section still shows placeholder, verify:
+  - collection handle spelling is exact,
+  - collection has products,
+  - products have thumbnail or images.
 
 ## Recent implemented changes (March 2026)
 
@@ -999,6 +1065,20 @@ The backend is still initialising (running migrations and the startup build). Wa
 ```sh
 docker logs -f medusa_backend
 ```
+
+#### Admin page shows `Blocked request. This host (...) is not allowed.`
+
+This comes from the Medusa admin Vite host allowlist.
+
+Set `ADMIN_ALLOWED_HOSTS` in backend `.env` as a comma-separated list of domains and rebuild the medusa container:
+
+```sh
+echo 'ADMIN_ALLOWED_HOSTS=summithire.tech,www.summithire.tech' >> /root/thaiVaiEcom2.0/.env
+cd /root/thaiVaiEcom2.0
+docker compose up -d --build medusa
+```
+
+You can include additional domains in the same variable as needed.
 
 #### `Permission denied (publickey)` when pushing/cloning GitHub repo
 

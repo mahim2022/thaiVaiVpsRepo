@@ -36,6 +36,7 @@ services:
   # This service runs the Medusa backend application
   # and the admin dashboard.
   medusa:
+    image: thaivaiecom20-medusa-prod
     build:
       context: .
       dockerfile: Dockerfile.prod
@@ -69,10 +70,14 @@ services:
 
   # Medusa Storefront
   storefront:
+    image: thaivaiecom20-storefront-prod
     build:
       context: ./my-medusa-storefront
       extra_hosts:
         - "host.docker.internal:host-gateway"
+      args:
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-}
+        MEDUSA_BACKEND_URL: ${STOREFRONT_BUILD_MEDUSA_BACKEND_URL:-http://host.docker.internal:9000}
     container_name: medusa_storefront
     restart: unless-stopped
     depends_on:
