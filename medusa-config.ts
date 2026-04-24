@@ -63,6 +63,9 @@ module.exports = defineConfig({
 ,
   modules: [
     {
+      resolve: "./src/modules/custom-order",
+    },
+    {
       resolve: "@medusajs/file",
       key: "file",
       options: {

@@ -1,0 +1,99 @@
+name: Custom Orders Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  custom-orders-integration:
+    name: Custom Orders Integration
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/custom-orders-ci
+      REDIS_URL: redis://localhost:6379
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: custom-orders-ci
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run migrations
+        run: npx medusa db:migrate
+
+      - name: Seed database
+        run: yarn seed
+
+      - name: Resolve publishable key for test DB
+        run: |
+          PUBLISHABLE_KEY=$(node -e "const { Client } = require('pg'); (async () => { const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect(); const r = await c.query(\"select id from api_key where type = 'publishable' order by created_at desc limit 1\"); await c.end(); process.stdout.write(r.rows[0]?.id || ''); })().catch((e) => { console.error(e); process.exit(1); });")
+          if [ -z "$PUBLISHABLE_KEY" ]; then
+            echo "No publishable key found"
+            exit 1
+          fi
+          echo "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=$PUBLISHABLE_KEY" >> "$GITHUB_ENV"
+
+      - name: Start Medusa server
+        run: yarn dev > /tmp/medusa-dev.log 2>&1 &
+
+      - name: Wait for Medusa health endpoint
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:9000/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Medusa server failed to become healthy"
+          cat /tmp/medusa-dev.log
+          exit 1
+
+      - name: Write storefront test env
+        run: |
+          cat > my-medusa-storefront/.env <<EOF
+          MEDUSA_BACKEND_URL=http://localhost:9000
+          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=$NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+          NEXT_PUBLIC_BASE_URL=http://localhost:8000
+          NEXT_PUBLIC_DEFAULT_REGION=us
+          REVALIDATE_SECRET=supersecret
+          EOF
+
+      - name: Run custom-orders integration test
+        run: yarn test:integration:custom-orders
