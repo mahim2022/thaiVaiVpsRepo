@@ -1,11 +1,17 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
+import {
+  normalizeAttachments,
+  resolvePublicBaseUrl,
+} from "../../../utils/attachment-url"
+
 const ALLOWED_STATUSES = new Set(["submitted", "in_review", "replied", "closed"])
-const withAttachments = <T extends { attachments?: unknown }>(customOrder: T) => ({
+const withAttachments = (
+  customOrder: { attachments?: unknown } & Record<string, unknown>,
+  publicBaseUrl?: string | null
+) => ({
   ...customOrder,
-  attachments: Array.isArray(customOrder.attachments)
-    ? customOrder.attachments
-    : [],
+  attachments: normalizeAttachments(customOrder.attachments, publicBaseUrl),
 })
 const ALLOWED_TRANSITIONS: Record<string, Set<string>> = {
   submitted: new Set(["in_review", "closed"]),
@@ -66,6 +72,7 @@ const buildUpdatePayload = (
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const customOrderService = req.scope.resolve("customOrder") as any
+  const publicBaseUrl = resolvePublicBaseUrl(req)
 
   const custom_order = await customOrderService
     .retrieveCustomOrder(req.params.id)
@@ -75,11 +82,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.status(404).json({ message: "Custom order not found" })
   }
 
-  return res.status(200).json({ custom_order: withAttachments(custom_order) })
+  return res.status(200).json({
+    custom_order: withAttachments(custom_order, publicBaseUrl),
+  })
 }
 
 export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
   const customOrderService = req.scope.resolve("customOrder") as any
+  const publicBaseUrl = resolvePublicBaseUrl(req)
   const current = await customOrderService
     .retrieveCustomOrder(req.params.id)
     .catch(() => null)
@@ -107,5 +117,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
 
   const custom_order = await customOrderService.retrieveCustomOrder(req.params.id)
 
-  return res.status(200).json({ custom_order: withAttachments(custom_order) })
+  return res.status(200).json({
+    custom_order: withAttachments(custom_order, publicBaseUrl),
+  })
 }

@@ -24,6 +24,8 @@ type ListResponse = {
   custom_orders: CustomOrder[]
 }
 
+const getAttachmentCount = (order: CustomOrder) => order.attachments?.length || 0
+
 const statusOptions: Array<CustomOrder["status"]> = [
   "submitted",
   "in_review",
@@ -34,6 +36,8 @@ const statusOptions: Array<CustomOrder["status"]> = [
 const CustomOrdersPage = () => {
   const [orders, setOrders] = useState<CustomOrder[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedAttachmentUrl, setSelectedAttachmentUrl] = useState<string | null>(null)
+  const [selectedAttachmentName, setSelectedAttachmentName] = useState<string | null>(null)
   const [status, setStatus] = useState<CustomOrder["status"]>("submitted")
   const [adminReply, setAdminReply] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -62,10 +66,22 @@ const CustomOrdersPage = () => {
       setOrders(data.custom_orders || [])
 
       if (!selectedId && data.custom_orders?.length) {
-        const first = data.custom_orders[0]
+        // Prefer an order with attachments so admins immediately see previews.
+        const first =
+          data.custom_orders.find((order) => getAttachmentCount(order) > 0) ||
+          data.custom_orders[0]
+
         setSelectedId(first.id)
         setStatus(first.status)
         setAdminReply(first.admin_reply || "")
+
+        if (first.attachments?.length) {
+          setSelectedAttachmentUrl(first.attachments[0].url)
+          setSelectedAttachmentName(first.attachments[0].filename)
+        } else {
+          setSelectedAttachmentUrl(null)
+          setSelectedAttachmentName(null)
+        }
       }
     } catch (e: any) {
       setError(e?.message || "Could not load custom orders")
@@ -85,6 +101,13 @@ const CustomOrdersPage = () => {
 
     setStatus(selectedOrder.status)
     setAdminReply(selectedOrder.admin_reply || "")
+    if (selectedOrder.attachments?.length) {
+      setSelectedAttachmentUrl(selectedOrder.attachments[0].url)
+      setSelectedAttachmentName(selectedOrder.attachments[0].filename)
+    } else {
+      setSelectedAttachmentUrl(null)
+      setSelectedAttachmentName(null)
+    }
   }, [selectedOrder])
 
   const onSave = async () => {
@@ -144,9 +167,20 @@ const CustomOrdersPage = () => {
                   type="button"
                 >
                   <p className="text-small-plus">{order.title}</p>
-                  <p className="text-small-regular text-ui-fg-subtle">
-                    {order.status}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-small-regular text-ui-fg-subtle">
+                      {order.status}
+                    </p>
+                    {getAttachmentCount(order) > 0 ? (
+                      <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+                        {getAttachmentCount(order)} image{getAttachmentCount(order) > 1 ? "s" : ""}
+                      </span>
+                    ) : (
+                      <span className="rounded bg-ui-bg-subtle px-2 py-0.5 text-xs text-ui-fg-subtle">
+                        no images
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))
             ) : (
@@ -163,9 +197,21 @@ const CustomOrdersPage = () => {
                 <p className="text-small-regular text-ui-fg-subtle whitespace-pre-wrap">
                   {selectedOrder.description}
                 </p>
-                {selectedOrder.attachments?.length ? (
+                  {selectedOrder.attachments?.length ? (
                   <div className="mt-3 flex flex-col gap-2">
                     <p className="text-small-plus">Attachments</p>
+                    {selectedAttachmentUrl ? (
+                      <div className="rounded border border-ui-border-base bg-ui-bg-subtle p-3">
+                        <img
+                          src={selectedAttachmentUrl}
+                          alt={selectedAttachmentName || "Attachment preview"}
+                          className="max-h-80 w-full rounded object-contain bg-white"
+                        />
+                        <p className="mt-2 text-small-regular text-ui-fg-subtle">
+                          {selectedAttachmentName}
+                        </p>
+                      </div>
+                    ) : null}
                     <div className="flex flex-wrap gap-3">
                       {selectedOrder.attachments.map((attachment) => (
                         <a
@@ -173,6 +219,10 @@ const CustomOrdersPage = () => {
                           href={attachment.url}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() => {
+                            setSelectedAttachmentUrl(attachment.url)
+                            setSelectedAttachmentName(attachment.filename)
+                          }}
                           className="group flex w-24 flex-col gap-1 rounded border border-ui-border-base p-1 hover:bg-ui-bg-subtle"
                         >
                           <img
@@ -188,7 +238,11 @@ const CustomOrdersPage = () => {
                       ))}
                     </div>
                   </div>
-                ) : null}
+                  ) : (
+                    <div className="mt-3 rounded border border-ui-border-base bg-ui-bg-subtle p-3 text-small-regular text-ui-fg-subtle">
+                      No images were uploaded for this request.
+                    </div>
+                  )}
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">

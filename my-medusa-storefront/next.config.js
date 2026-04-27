@@ -46,6 +46,12 @@ if (NEXT_PUBLIC_BASE_URL) {
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  experimental: {
+    serverActions: {
+      // Custom order requests can include multiple images; raise default 1MB limit.
+      bodySizeLimit: "35mb",
+    },
+  },
   logging: {
     fetches: {
       fullUrl: process.env.NODE_ENV !== "production",

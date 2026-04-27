@@ -4,6 +4,12 @@ import {
   MedusaStoreRequest,
 } from "@medusajs/framework/http"
 
+import {
+  normalizeAttachmentUrl,
+  normalizeAttachments,
+  resolvePublicBaseUrl,
+} from "../../../../utils/attachment-url"
+
 type AttachmentInput = {
   filename: string
   mime_type: string
@@ -38,10 +44,6 @@ const getCustomerId = (req: MedusaStoreRequest): string | null => {
   return authContext.actor_id
 }
 
-const normalizeAttachments = (value: unknown): CustomOrderAttachment[] => {
-  return Array.isArray(value) ? (value as CustomOrderAttachment[]) : []
-}
-
 const toBase64Payload = (raw: string): string => {
   const parts = raw.split(",")
   return (parts.length > 1 ? parts[1] : raw).replace(/\s/g, "")
@@ -49,6 +51,7 @@ const toBase64Payload = (raw: string): string => {
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const customerId = getCustomerId(req as MedusaStoreRequest)
+  const publicBaseUrl = resolvePublicBaseUrl(req)
 
   if (!customerId) {
     return res.status(401).json({ message: "Customer authentication required" })
@@ -106,7 +109,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const newAttachments: CustomOrderAttachment[] = createdFiles.map(
     (created: { id: string; url: string }, index: number) => ({
       file_id: created.id,
-      url: created.url,
+      url: normalizeAttachmentUrl(created.url, publicBaseUrl),
       filename: body.files[index].filename,
       mime_type: body.files[index].mime_type,
       created_at: new Date().toISOString(),
@@ -123,7 +126,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   return res.status(200).json({
     custom_order: {
       ...updated,
-      attachments: normalizeAttachments(updated.attachments),
+      attachments: normalizeAttachments(updated.attachments, publicBaseUrl),
     },
   })
 }

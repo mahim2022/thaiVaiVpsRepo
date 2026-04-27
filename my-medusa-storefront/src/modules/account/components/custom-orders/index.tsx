@@ -6,11 +6,21 @@ import { Heading, IconButton, Text } from "@medusajs/ui"
 import Input from "@modules/common/components/input"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import { useRouter } from "next/navigation"
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useMemo, useState, type ChangeEvent } from "react"
 
 type CustomOrdersProps = {
   orders: StoreCustomOrder[]
 }
+
+const MAX_ATTACHMENTS = 5
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+])
 
 const statusLabel: Record<StoreCustomOrder["status"], string> = {
   submitted: "Submitted",
@@ -22,6 +32,11 @@ const statusLabel: Record<StoreCustomOrder["status"], string> = {
 export default function CustomOrders({ orders }: CustomOrdersProps) {
   const router = useRouter()
   const [showSuccess, setShowSuccess] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
+  const [selectedFilePreviews, setSelectedFilePreviews] = useState<
+    Array<{ name: string; url: string }>
+  >([])
 
   const [state, formAction] = useActionState(createCustomOrder, {
     success: false,
@@ -29,12 +44,71 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
     custom_order: null,
   })
 
+  const selectedFilesKey = useMemo(
+    () => selectedFiles.map((file) => `${file.name}:${file.size}:${file.lastModified}`).join("|"),
+    [selectedFiles]
+  )
+
+  useEffect(() => {
+    const previews = selectedFiles.map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }))
+
+    setSelectedFilePreviews(previews)
+
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url))
+    }
+  }, [selectedFilesKey])
+
   useEffect(() => {
     if (state.success && state.custom_order) {
       setShowSuccess(true)
+      setSelectedFiles([])
+      setAttachmentError(null)
+      setSelectedFilePreviews([])
       router.refresh()
     }
   }, [state.success, state.custom_order, router])
+
+  const onAttachmentChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+
+    if (!files.length) {
+      setSelectedFiles([])
+      setAttachmentError(null)
+      return
+    }
+
+    if (files.length > MAX_ATTACHMENTS) {
+      setSelectedFiles([])
+      setAttachmentError(`You can upload up to ${MAX_ATTACHMENTS} images.`)
+      event.target.value = ""
+      return
+    }
+
+    const unsupported = files.find((file) => !ALLOWED_ATTACHMENT_TYPES.has(file.type))
+
+    if (unsupported) {
+      setSelectedFiles([])
+      setAttachmentError(`'${unsupported.name}' is not a supported image type.`)
+      event.target.value = ""
+      return
+    }
+
+    const oversized = files.find((file) => file.size > MAX_ATTACHMENT_SIZE_BYTES)
+
+    if (oversized) {
+      setSelectedFiles([])
+      setAttachmentError(`'${oversized.name}' exceeds 5MB.`)
+      event.target.value = ""
+      return
+    }
+
+    setAttachmentError(null)
+    setSelectedFiles(files)
+  }
 
   return (
     <div className="w-full" data-testid="custom-orders-page-wrapper">
@@ -47,7 +121,7 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
       </div>
 
       <div className="flex flex-col gap-y-10">
-        <form action={formAction} className="flex flex-col gap-y-4">
+        <form action={formAction} encType="multipart/form-data" className="flex flex-col gap-y-4">
           <Heading level="h2">New Request</Heading>
           <Input
             label="Title"
@@ -82,11 +156,34 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
               type="file"
               accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
               multiple
+              onChange={onAttachmentChange}
               data-testid="custom-order-attachments-input"
             />
             <Text className="text-small-regular text-ui-fg-subtle">
               Up to 5 images, max 5MB each.
             </Text>
+            {attachmentError ? (
+              <Text className="text-small-regular text-rose-500">{attachmentError}</Text>
+            ) : null}
+            {selectedFilePreviews.length ? (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {selectedFilePreviews.map((preview) => (
+                  <div
+                    key={preview.url}
+                    className="overflow-hidden rounded-md border border-ui-border-base bg-ui-bg-subtle"
+                  >
+                    <img
+                      src={preview.url}
+                      alt={preview.name}
+                      className="h-28 w-full object-cover"
+                    />
+                    <p className="px-2 py-1 text-small-regular text-ui-fg-subtle">
+                      {preview.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="flex justify-end">
             <SubmitButton

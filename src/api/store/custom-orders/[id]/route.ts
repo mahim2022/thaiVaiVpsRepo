@@ -4,6 +4,11 @@ import {
   MedusaStoreRequest,
 } from "@medusajs/framework/http"
 
+import {
+  normalizeAttachments,
+  resolvePublicBaseUrl,
+} from "../../../utils/attachment-url"
+
 const getCustomerId = (req: MedusaStoreRequest): string | null => {
   const authContext = req.auth_context
 
@@ -14,15 +19,17 @@ const getCustomerId = (req: MedusaStoreRequest): string | null => {
   return authContext.actor_id
 }
 
-const withAttachments = <T extends { attachments?: unknown }>(customOrder: T) => ({
+const withAttachments = (
+  customOrder: { attachments?: unknown } & Record<string, unknown>,
+  publicBaseUrl?: string | null
+) => ({
   ...customOrder,
-  attachments: Array.isArray(customOrder.attachments)
-    ? customOrder.attachments
-    : [],
+  attachments: normalizeAttachments(customOrder.attachments, publicBaseUrl),
 })
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const customerId = getCustomerId(req as MedusaStoreRequest)
+  const publicBaseUrl = resolvePublicBaseUrl(req)
 
   if (!customerId) {
     return res.status(401).json({ message: "Customer authentication required" })
@@ -38,5 +45,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.status(404).json({ message: "Custom order not found" })
   }
 
-  return res.status(200).json({ custom_order: withAttachments(custom_order) })
+  return res.status(200).json({
+    custom_order: withAttachments(custom_order, publicBaseUrl),
+  })
 }
