@@ -59,6 +59,43 @@ docker exec medusa_backend npx medusa exec ./src/scripts/stress-test-products.ts
 yarn stress-test:full
 ```
 
+### 5. Soak Capacity Test (For Indefinite Runtime Sizing)
+```bash
+# Default 6 hours
+yarn stress-test:soak
+
+# Explicit 6-hour profile
+yarn stress-test:soak:6h
+
+# 24-hour profile (best for production capacity planning)
+yarn stress-test:soak:24h
+```
+
+What it does:
+- Runs sustained transaction load for the configured duration
+- Samples container CPU, memory, network, block I/O, and PIDs
+- Samples host memory, load average, and root disk usage
+- Produces peak usage and growth-per-day projections for long-run operation
+
+Output directory:
+```
+/root/soak-capacity-results-YYYYMMDD-HHMMSS/
+├── SOAK_CAPACITY_REPORT.md        # Peak resource + sizing recommendation
+├── container_metrics.csv          # Time-series container metrics
+├── host_metrics.csv               # Time-series host metrics
+├── container_limits.csv           # Docker memory/CPU/PID limits
+├── load_test.log                  # Transaction load summary and errors
+└── environment.txt                # Test profile used
+```
+
+Key fields in `SOAK_CAPACITY_REPORT.md`:
+- Peak combined container memory
+- Per-container max CPU and max memory
+- Host minimum available memory and max load average
+- Root filesystem and Postgres growth during test
+- Estimated growth per day at observed traffic
+- Recommended memory and disk budget with safety headroom
+
 ---
 
 ## What Gets Tested
