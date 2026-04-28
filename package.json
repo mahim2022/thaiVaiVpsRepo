@@ -45,7 +45,7 @@
     "@medusajs/framework": "2.13.5",
     "@medusajs/medusa": "2.13.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.13.4",
