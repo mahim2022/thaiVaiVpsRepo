@@ -388,10 +388,11 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
 
 /**
  * Places an order for a cart. If no cart ID is provided, it will use the cart ID from the cookies.
+ * @param idempotencyKey - optional key used to safely retry the completion request.
  * @param cartId - optional - The ID of the cart to place an order for.
  * @returns The cart object if the order was successful, or null if not.
  */
-export async function placeOrder(cartId?: string) {
+export async function placeOrder(idempotencyKey?: string, cartId?: string) {
   const id = cartId || (await getCartId())
 
   if (!id) {
@@ -400,6 +401,7 @@ export async function placeOrder(cartId?: string) {
 
   const headers = {
     ...(await getAuthHeaders()),
+    ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
   }
 
   const cartRes = await sdk.store.cart

@@ -5,7 +5,7 @@ import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import ErrorMessage from "../error-message"
 
 type PaymentButtonProps = {
@@ -55,13 +55,30 @@ const StripePaymentButton = ({
 }) => {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const orderSubmissionKey = useRef<string | null>(null)
+  const orderSubmissionInFlight = useRef(false)
+
+  const getOrderSubmissionKey = () => {
+    if (!orderSubmissionKey.current) {
+      orderSubmissionKey.current = crypto.randomUUID()
+    }
+
+    return orderSubmissionKey.current
+  }
 
   const onPaymentCompleted = async () => {
-    await placeOrder()
+    if (orderSubmissionInFlight.current) {
+      return
+    }
+
+    orderSubmissionInFlight.current = true
+
+    await placeOrder(getOrderSubmissionKey())
       .catch((err) => {
         setErrorMessage(err.message)
       })
       .finally(() => {
+        orderSubmissionInFlight.current = false
         setSubmitting(false)
       })
   }
@@ -77,6 +94,10 @@ const StripePaymentButton = ({
   const disabled = !stripe || !elements ? true : false
 
   const handlePayment = async () => {
+    if (submitting || orderSubmissionInFlight.current) {
+      return
+    }
+
     setSubmitting(true)
 
     if (!stripe || !elements || !card || !cart) {
@@ -135,10 +156,11 @@ const StripePaymentButton = ({
   return (
     <>
       <Button
-        disabled={disabled || notReady}
+        disabled={disabled || notReady || submitting}
         onClick={handlePayment}
         size="large"
         isLoading={submitting}
+        type="button"
         data-testid={dataTestId}
       >
         Place order
@@ -154,18 +176,39 @@ const StripePaymentButton = ({
 const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const orderSubmissionKey = useRef<string | null>(null)
+  const orderSubmissionInFlight = useRef(false)
+
+  const getOrderSubmissionKey = () => {
+    if (!orderSubmissionKey.current) {
+      orderSubmissionKey.current = crypto.randomUUID()
+    }
+
+    return orderSubmissionKey.current
+  }
 
   const onPaymentCompleted = async () => {
-    await placeOrder()
+    if (orderSubmissionInFlight.current) {
+      return
+    }
+
+    orderSubmissionInFlight.current = true
+
+    await placeOrder(getOrderSubmissionKey())
       .catch((err) => {
         setErrorMessage(err.message)
       })
       .finally(() => {
+        orderSubmissionInFlight.current = false
         setSubmitting(false)
       })
   }
 
   const handlePayment = () => {
+    if (submitting || orderSubmissionInFlight.current) {
+      return
+    }
+
     setSubmitting(true)
 
     onPaymentCompleted()
@@ -174,10 +217,11 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   return (
     <>
       <Button
-        disabled={notReady}
+        disabled={notReady || submitting}
         isLoading={submitting}
         onClick={handlePayment}
         size="large"
+        type="button"
         data-testid="submit-order-button"
       >
         Place order
