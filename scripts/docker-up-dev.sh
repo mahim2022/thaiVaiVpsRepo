@@ -12,5 +12,8 @@ cd "$ROOT_DIR"
 echo "Stopping the production stack if it is running..."
 docker compose down --remove-orphans >/dev/null 2>&1 || true
 
+echo "Stopping the dev stack if it is running..."
+docker compose -f docker-compose.dev.yml down --remove-orphans >/dev/null 2>&1 || true
+
 echo "Starting development stack..."
 docker compose -f docker-compose.dev.yml up --build

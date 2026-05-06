@@ -10,6 +10,9 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
+    mem_limit: 512m
+    cpus: "1.0"
+    pids_limit: 200
     networks:
       - medusa_network_dev
 
@@ -19,6 +22,9 @@ services:
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
       - "127.0.0.1:6379:6379"
+    mem_limit: 256m
+    cpus: "0.5"
+    pids_limit: 100
     networks:
       - medusa_network_dev
 
@@ -40,16 +46,19 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
       - REDIS_URL=redis://redis:6379
-      - MEDUSA_BACKEND_URL=http://localhost:9000
-      - MEDUSA_FILE_BACKEND_URL=http://localhost:9000/static
-      - STORE_CORS=http://localhost:8000,http://127.0.0.1:8000
-      - ADMIN_CORS=http://localhost:5173,http://localhost:9000,http://127.0.0.1:5173,http://127.0.0.1:9000
-      - AUTH_CORS=http://localhost:5173,http://localhost:9000,http://127.0.0.1:5173,http://127.0.0.1:9000
+      - MEDUSA_BACKEND_URL=http://159.65.10.177:9000
+      - MEDUSA_FILE_BACKEND_URL=http://159.65.10.177:9000/static
+      - STORE_CORS=http://localhost:8000,http://127.0.0.1:8000,http://159.65.10.177:8000
+      - ADMIN_CORS=http://localhost:5173,http://localhost:9000,http://127.0.0.1:5173,http://127.0.0.1:9000,http://159.65.10.177:5173,http://159.65.10.177:9000
+      - AUTH_CORS=http://localhost:5173,http://localhost:9000,http://127.0.0.1:5173,http://127.0.0.1:9000,http://159.65.10.177:5173,http://159.65.10.177:9000
       - COOKIE_SECURE=false
     volumes:
       - .:/server
       - medusa_node_modules:/server/node_modules
       - medusa_medusa:/server/.medusa
+    mem_limit: 3072m
+    cpus: "2.0"
+    pids_limit: 1000
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:9000/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
@@ -70,10 +79,10 @@ services:
         condition: service_started
     ports:
       - "8000:8000"
+    env_file:
+      - ./my-medusa-storefront/.env.development
     environment:
       - NODE_ENV=development
-      - MEDUSA_BACKEND_URL=http://medusa:9000
-      - NEXT_PUBLIC_BASE_URL=http://localhost:8000
       - DEV_DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -81,6 +90,9 @@ services:
       - ./my-medusa-storefront:/app
       - storefront_node_modules:/app/node_modules
     command: ["sh", "/app/start.dev.sh"]
+    mem_limit: 1024m
+    cpus: "2.0"
+    pids_limit: 500
     networks:
       - medusa_network_dev
 

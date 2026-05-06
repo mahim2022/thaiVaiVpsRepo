@@ -12,7 +12,7 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    mem_limit: 700m
+    mem_limit: 250m
     cpus: "1.0"
     pids_limit: 200
     networks:
@@ -26,7 +26,7 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
-    mem_limit: 300m
+    mem_limit: 100m
     cpus: "0.5"
     pids_limit: 100
     networks:
@@ -62,7 +62,7 @@ services:
     volumes:
       - shared_config:/shared
       - medusa_static:/server/static
-    mem_limit: 600m
+    mem_limit: 400m
     cpus: "1.0"
     pids_limit: 300
     networks:
@@ -76,8 +76,8 @@ services:
       extra_hosts:
         - "host.docker.internal:host-gateway"
       args:
-        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-}
-        MEDUSA_BACKEND_URL: ${STOREFRONT_BUILD_MEDUSA_BACKEND_URL:-http://host.docker.internal:9000}
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-pk_f344fcdf56855856b37efdbcdc5eb461e6f2a90678f377ccd671b3b723c1ea82}
+        MEDUSA_BACKEND_URL: ${STOREFRONT_BUILD_MEDUSA_BACKEND_URL:-https://thaibhai.shop}
     container_name: medusa_storefront
     restart: unless-stopped
     depends_on:
@@ -92,7 +92,7 @@ services:
       - MEDUSA_BACKEND_URL=http://medusa:9000
     volumes:
       - shared_config:/shared
-    mem_limit: 900m
+    mem_limit: 200m
     cpus: "0.75"
     pids_limit: 250
     networks:
@@ -121,8 +121,8 @@ services:
             -newkey rsa:2048 \
             -keyout /etc/nginx/certs/server.key \
             -out /etc/nginx/certs/server.crt \
-            -subj "/CN=summithire.tech" \
-            -addext "subjectAltName=DNS:summithire.tech,DNS:www.summithire.tech"
+            -subj "/CN=thaibhai.shop" \
+            -addext "subjectAltName=DNS:thaibhai.shop,DNS:www.thaibhai.shop"
         fi
         exec nginx -g 'daemon off;'
     volumes:

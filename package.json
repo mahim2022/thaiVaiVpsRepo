@@ -15,6 +15,7 @@
   "scripts": {
     "build": "medusa build",
     "seed": "medusa exec ./src/scripts/seed.ts",
+    "seed:dev": "medusa exec ./src/scripts/seed.dev.ts",
     "email:test": "medusa exec ./src/scripts/send-brevo-test.ts",
     "stress-test": "medusa exec ./src/scripts/stress-test-products.ts",
     "stress-test:full": "sh ./scripts/run-stress-test.sh",

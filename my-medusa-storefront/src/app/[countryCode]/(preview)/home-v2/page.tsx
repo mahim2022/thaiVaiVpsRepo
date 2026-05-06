@@ -87,7 +87,7 @@ export default async function ThaiVibePreviewPage(props: {
             with your final product photography later.
           </p>
           <Link
-            href="#catalog"
+            href={`/${countryCode}/store`}
             className="self-start border border-[#0b4f3f] py-[0.64rem] px-[1.1rem] rounded-full no-underline uppercase tracking-[0.08em] text-[0.74rem] font-bold transition-all duration-150 ease-in bg-[#0b4f3f] text-[#f7f3ec] hover:-translate-y-px hover:scale-110 active:scale-95"
             style={{ animation: "bounce-in 1s ease-out 0.4s forwards" }}
           >

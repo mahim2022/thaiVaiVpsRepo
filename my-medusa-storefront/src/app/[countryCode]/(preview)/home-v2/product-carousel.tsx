@@ -6,7 +6,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { useRouter } from "next/navigation"
-import { type WheelEvent, useRef, useState } from "react"
+import { type WheelEvent, useRef, useState, useEffect, useCallback } from "react"
 
 type PreviewProductCarouselProps = {
   products: HttpTypes.StoreProduct[]
@@ -23,6 +23,49 @@ const PreviewProductCarousel = ({
   const router = useRouter()
   const trackRef = useRef<HTMLDivElement>(null)
   const [addingVariantId, setAddingVariantId] = useState<string | null>(null)
+  const autoScrollTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const pausedRef = useRef(false)
+
+  // Auto-scroll functionality
+  useEffect(() => {
+    if (!trackRef.current || products.length === 0) return
+
+    const startAutoScroll = () => {
+      if (autoScrollTimerRef.current) clearInterval(autoScrollTimerRef.current)
+
+      autoScrollTimerRef.current = setInterval(() => {
+        if (trackRef.current && !pausedRef.current) {
+          const track = trackRef.current
+          const scrollableWidth = track.scrollWidth - track.clientWidth
+          const halfScrollWidth = scrollableWidth / 2
+
+          // Reset to the beginning when reaching the middle (seamless loop)
+          if (track.scrollLeft >= halfScrollWidth) {
+            track.scrollLeft = 0
+          } else {
+            track.scrollLeft += 1
+          }
+        }
+      }, 30)
+    }
+
+    // Start auto-scroll after a short delay
+    const delay = setTimeout(startAutoScroll, 1000)
+
+    return () => {
+      clearTimeout(delay)
+      if (autoScrollTimerRef.current) clearInterval(autoScrollTimerRef.current)
+    }
+  }, [products.length])
+
+  // Pause auto-scroll on wheel interaction
+  const pauseAutoScroll = useCallback(() => {
+    pausedRef.current = true
+  }, [])
+
+  const resumeAutoScroll = useCallback(() => {
+    pausedRef.current = false
+  }, [])
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     if (!trackRef.current) {
@@ -34,7 +77,11 @@ const PreviewProductCarousel = ({
     }
 
     event.preventDefault()
+    pauseAutoScroll()
     trackRef.current.scrollLeft += event.deltaY
+
+    // Resume auto-scroll after 3 seconds of inactivity
+    setTimeout(resumeAutoScroll, 3000)
   }
 
   const handleAddToCart = async (variantId?: string) => {
@@ -62,12 +109,6 @@ const PreviewProductCarousel = ({
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-[#f1d8d6] to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-[#f1d8d6] to-transparent" />
 
-      {products.length > 0 ? (
-        <div className="border-b border-[#0b4f3f]/15 px-6 py-3 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[#0b4f3f]">
-          Scroll with the mouse wheel to browse all products
-        </div>
-      ) : null}
-
       <div
         ref={trackRef}
         onWheel={handleWheel}
@@ -75,7 +116,7 @@ const PreviewProductCarousel = ({
         style={{ scrollSnapType: "x proximity" }}
       >
         {products.length > 0 ? (
-          products.map((product, index) => {
+          products.concat(products).map((product, index) => {
             const imageUrl = product.thumbnail || product.images?.[0]?.url || ""
             const { cheapestPrice } = getProductPrice({ product })
             const primaryVariant =
@@ -88,7 +129,7 @@ const PreviewProductCarousel = ({
 
             return (
               <article
-                key={product.id}
+                key={`${product.id}-${index}`}
                 className="flex min-w-[min(78vw,330px)] max-w-[330px] shrink-0 snap-start flex-col rounded-[22px] border-[3px] border-[#0b4f3f] bg-[#f7f3ec] p-4 text-center shadow-[0_14px_28px_rgba(19,39,68,0.18)] transition-transform duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_22px_44px_rgba(19,39,68,0.26)]"
                 style={{ animation: `bounce-in 0.8s ease-out ${0.15 + (index % 4) * 0.08}s forwards` }}
               >
