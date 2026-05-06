@@ -58,10 +58,29 @@ module.exports = defineConfig({
 			ssl: false,
 			sslmode: "disable",
 		},
+		eventBus: {
+			resolve: "@medusajs/event-bus-redis",
+			options: {
+				redisUrl: process.env.REDIS_URL || "redis://redis:6379",
+			},
+		},
 	},
 	modules: [
 		{
 			resolve: "./src/modules/custom-order/index.js",
+		},
+		// Use distributed locking (PostgreSQL) to avoid in-memory lock contention under concurrency
+		{
+			resolve: "@medusajs/locking",
+			options: {
+				provider: {
+					resolve: "@medusajs/locking-postgres",
+					options: {
+						acquireTimeoutMs: Number(process.env.LOCK_ACQUIRE_TIMEOUT_MS || 10000),
+						lockTtlMs: Number(process.env.LOCK_TTL_MS || 30000),
+					},
+				},
+			},
 		},
 		{
 			resolve: "@medusajs/file",

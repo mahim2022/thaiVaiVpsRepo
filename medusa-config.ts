@@ -20,7 +20,6 @@ module.exports = defineConfig({
             return {
               server: {
                 host: "0.0.0.0",
-                // Dev-only host/HMR overrides for Docker local development.
                 allowedHosts: [
                   "localhost",
                   ".localhost",
@@ -41,7 +40,6 @@ module.exports = defineConfig({
       : {}),
   },
 
-
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     cookieOptions: {
@@ -56,15 +54,28 @@ module.exports = defineConfig({
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
-     databaseDriverOptions: {
+    databaseDriverOptions: {
       ssl: false,
       sslmode: "disable",
     },
-  }
-,
+  },
+
   modules: [
     {
       resolve: "./src/modules/custom-order",
+    },
+    // Use distributed locking (PostgreSQL) to avoid in-memory lock contention under concurrency
+    {
+      resolve: "@medusajs/locking",
+      options: {
+        provider: {
+          resolve: "@medusajs/locking-postgres",
+          options: {
+            acquireTimeoutMs: Number(process.env.LOCK_ACQUIRE_TIMEOUT_MS || 10000),
+            lockTtlMs: Number(process.env.LOCK_TTL_MS || 30000),
+          },
+        },
+      },
     },
     {
       resolve: "@medusajs/file",
