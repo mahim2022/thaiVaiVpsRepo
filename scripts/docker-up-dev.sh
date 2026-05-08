@@ -16,4 +16,6 @@ echo "Stopping the dev stack if it is running..."
 docker compose -f docker-compose.dev.yml down --remove-orphans >/dev/null 2>&1 || true
 
 echo "Starting development stack..."
-docker compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up -d --build
+echo "Dev stack started. Run the seed manually when ready:"
+echo "  docker compose -f docker-compose.dev.yml exec -T medusa yarn seed:dev"

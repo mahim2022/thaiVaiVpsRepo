@@ -427,6 +427,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
     input: {
       id: publishableApiKey.id,
       add: [bangladeshSalesChannelId],
+      remove: [defaultSalesChannelId],
     },
   });
   logger.info(`✅ API Key linked to Bangladesh Sales Channel`);

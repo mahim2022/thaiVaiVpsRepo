@@ -35,9 +35,9 @@
     "test:integration:custom-orders": "yarn test:integration:http integration-tests/http/custom-orders.spec.ts",
     "test:integration:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit",
-    "docker:up": "sh ./scripts/docker-up-prebuilt.sh",
+    "docker:up": "bash ./scripts/docker-up-prebuilt.sh",
     "docker:down": "docker compose down",
-    "docker:dev:up": "sh ./scripts/docker-up-dev.sh",
+    "docker:dev:up": "bash ./scripts/docker-up-dev.sh",
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
   },
   "dependencies": {
