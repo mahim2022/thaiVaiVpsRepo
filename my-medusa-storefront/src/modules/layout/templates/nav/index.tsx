@@ -1,5 +1,7 @@
 import { Suspense } from "react"
 
+import { listCategories } from "@lib/data/categories"
+import { listCollections } from "@lib/data/collections"
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
@@ -11,19 +13,30 @@ import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale] = await Promise.all([
+  const [regions, locales, currentLocale, categories, collections] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
+    listCategories({ limit: 12 }),
+    listCollections({ limit: "12" }).then(({ collections }) => collections),
   ])
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
-      <header className="relative h-32 mx-auto border-b-2 duration-200 border-ui-border-base shadow-[0_10px_20px_rgba(19,39,68,0.14)]">
+      <header
+        className="relative h-32 mx-auto duration-200 bg-white"
+        style={{ backgroundImage: "none", backdropFilter: "none" }}
+      >
         <nav className="content-container txt-xsmall-plus text-ui-fg-base flex items-center justify-between w-full h-full text-base">
           <div className="flex-1 basis-0 h-full flex items-center">
             <div className="h-full">
-              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} />
+              <SideMenu
+                regions={regions}
+                locales={locales}
+                currentLocale={currentLocale}
+                categories={categories}
+                collections={collections}
+              />
             </div>
           </div>
 

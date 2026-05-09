@@ -13,18 +13,19 @@ export default async function Footer() {
   const productCategories = await listCategories()
 
   return (
-    <footer className="border-t-2 border-ui-border-base w-full mt-12 shadow-[0_-16px_26px_rgba(19,39,68,0.2)]">
-      <div className="content-container flex flex-col w-full">
-        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-24">
+    <footer >
+      <style>{`footer .content-container, footer .content-container .txt-small, footer .content-container .txt-small-plus, footer .content-container .txt-compact-small, footer .content-container a, footer .content-container span, footer .content-container p { font-size: 1rem !important; line-height: 1.4 !important; } footer .content-container .footer-links, footer .content-container .footer-links a, footer .content-container .footer-links span, footer .content-container .footer-links p, footer .content-container .footer-links .txt-small, footer .content-container .footer-links .txt-small-plus { font-size: 1.5rem !important; line-height: 1.4 !important; }`}</style>
+      <div className="content-container flex flex-col w-full !text-[1rem]">
+        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-6">
           <div>
             <LocalizedClientLink
               href="/"
               className="text-ui-fg-base hover:text-ui-fg-base inline-flex items-center"
             >
-              <BrandMark />
+              <BrandMark width={288} height={288} imageClassName="h-72 w-72" />
             </LocalizedClientLink>
           </div>
-          <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
+          <div className="footer-links translate-x-[20%] text-[1rem] text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3 mt-[3.8025rem]">
             {productCategories && productCategories?.length > 0 && (
               <div className="flex flex-col gap-y-2">
                 <span className="txt-small-plus txt-ui-fg-base">
@@ -149,7 +150,7 @@ export default async function Footer() {
             </div>
           </div>
         </div>
-        <div className="flex w-full mb-10 justify-between text-ui-fg-muted border-t border-white/20 pt-6">
+        <div className="flex w-full mb-2.5 justify-between text-ui-fg-muted border-t border-white/20 pt-6">
           <Text className="txt-compact-small">
             © {new Date().getFullYear()} ThaiVai Store. All rights reserved.
           </Text>

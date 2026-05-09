@@ -98,7 +98,7 @@ export default async function Home(props: {
           className="relative flex items-center justify-center overflow-hidden bg-[#f1d8d6] p-[clamp(1rem,2.2vw,2rem)]"
           style={{
             animation: "slide-right 1s ease-out forwards",
-            backgroundImage: `linear-gradient(rgba(241, 216, 214, 0.36), rgba(241, 216, 214, 0.36)), url('${FIRST_HERO_BG_IMAGE}')`,
+            backgroundImage: `linear-gradient(rgba(241, 216, 214, 0.36), rgba(241, 216, 214, 0.36))`,
             backgroundPosition: "center",
             backgroundSize: "92% auto",
             backgroundRepeat: "no-repeat",
@@ -154,7 +154,7 @@ export default async function Home(props: {
           className="relative overflow-hidden bg-[#d8e6ed] flex items-center justify-center p-[clamp(1rem,2.2vw,2rem)] max-[980px]:order-[-1]"
           style={{
             animation: "slide-left 1s ease-out 0.65s forwards",
-            backgroundImage: `url('${SECOND_SECTION_BG_IMAGE}')`,
+            backgroundImage: `linear-gradient(rgba(216, 230, 237, 0.36), rgba(216, 230, 237, 0.36))`,
             backgroundPosition: "center",
             backgroundSize: "92% auto",
             backgroundRepeat: "no-repeat",
@@ -186,10 +186,10 @@ export default async function Home(props: {
       </section>
 
       <section
-        className={`${dividerClass} grid overflow-hidden min-h-[clamp(380px,50vw,620px)] grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] max-[980px]:grid-cols-1 max-[980px]:min-h-0`}
+        className={`${dividerClass} grid overflow-hidden min-h-[clamp(380px,50vw,620px)] grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] bg-white max-[980px]:grid-cols-1 max-[980px]:min-h-0`}
         style={{ animation: "fade-in-up 1s ease-out 0.9s forwards" }}
       >
-        <div className="bg-[#f1d8d6] p-[clamp(1.4rem,3.8vw,4.8rem)] flex flex-col justify-center gap-[0.9rem]" style={{ animation: "slide-left 1s ease-out 0.95s forwards" }}>
+        <div className="bg-white p-[clamp(1.4rem,3.8vw,4.8rem)] flex flex-col justify-center gap-[0.9rem]" style={{ animation: "slide-left 1s ease-out 0.95s forwards" }}>
           <p className="m-0 uppercase tracking-[0.18em] text-[0.72rem] text-[#0b4f3f] font-bold" style={{ animation: "heartbeat 1.2s ease-in-out 1s infinite" }}>
             Save 5%
           </p>
@@ -222,7 +222,7 @@ export default async function Home(props: {
           </form>
         </div>
         <div
-          className="bg-[#f7f3ec] flex items-center justify-center p-[clamp(1rem,2.2vw,2rem)] max-[980px]:order-[-1]"
+          className="bg-white flex items-center justify-center p-[clamp(1rem,2.2vw,2rem)] max-[980px]:order-[-1]"
           style={{ animation: "slide-right 1s ease-out 0.95s forwards" }}
         >
           <div
