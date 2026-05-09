@@ -16,7 +16,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Thumbnail from "@modules/products/components/thumbnail"
 import { usePathname } from "next/navigation"
 import { Fragment, useEffect, useRef, useState } from "react"
-import PackageIcon from "@modules/common/icons/package"
+import ShoppingCartIcon from "@modules/common/icons/shopping-cart"
 
 const CartDropdown = ({
   cart: cartState,
@@ -88,7 +88,10 @@ const CartDropdown = ({
             data-testid="nav-cart-link"
             aria-label={`Cart (${totalItems})`}
           >
-            <PackageIcon size="18" />
+            <ShoppingCartIcon
+              size="18"
+              className="h-7 w-7 small:h-[18px] small:w-[18px]"
+            />
             <span className="hidden small:inline">{`Cart (${totalItems})`}</span>
           </LocalizedClientLink>
         </PopoverButton>

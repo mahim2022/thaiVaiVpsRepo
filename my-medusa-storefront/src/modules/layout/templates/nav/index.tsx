@@ -24,7 +24,7 @@ export default async function Nav() {
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
       <header
-        className="relative h-32 mx-auto duration-200 bg-white"
+        className="relative h-[5.5rem] small:h-32 mx-auto duration-200 bg-white"
         style={{ backgroundImage: "none", backdropFilter: "none" }}
       >
         <nav className="content-container txt-xsmall-plus text-ui-fg-base flex items-center justify-between w-full h-full text-base">
@@ -46,7 +46,12 @@ export default async function Nav() {
               className="inline-flex items-center cursor-pointer transition-colors duration-150 hover:text-ui-fg-accent"
               data-testid="nav-store-link"
             >
-              <BrandMark priority width={240} height={240} imageClassName="h-60 w-60" />
+              <BrandMark
+                priority
+                width={240}
+                height={240}
+                imageClassName="h-[6rem] w-[6rem] small:h-60 small:w-60"
+              />
             </LocalizedClientLink>
           </div>
 

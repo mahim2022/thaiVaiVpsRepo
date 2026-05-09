@@ -16,16 +16,16 @@ export default async function Footer() {
     <footer >
       <style>{`footer .content-container, footer .content-container .txt-small, footer .content-container .txt-small-plus, footer .content-container .txt-compact-small, footer .content-container a, footer .content-container span, footer .content-container p { font-size: 1rem !important; line-height: 1.4 !important; } footer .content-container .footer-links, footer .content-container .footer-links a, footer .content-container .footer-links span, footer .content-container .footer-links p, footer .content-container .footer-links .txt-small, footer .content-container .footer-links .txt-small-plus { font-size: 1.5rem !important; line-height: 1.4 !important; }`}</style>
       <div className="content-container flex flex-col w-full !text-[1rem]">
-        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-6">
-          <div>
+        <div className="flex flex-col gap-y-2 small:gap-y-6 xsmall:flex-row items-start justify-between py-6">
+          <div className="mb-3 small:mb-0">
             <LocalizedClientLink
               href="/"
               className="text-ui-fg-base hover:text-ui-fg-base inline-flex items-center"
             >
-              <BrandMark width={288} height={288} imageClassName="h-72 w-72" />
+              <BrandMark width={288} height={288} imageClassName="h-36 w-36 small:h-72 small:w-72" />
             </LocalizedClientLink>
           </div>
-          <div className="footer-links translate-x-[20%] text-[1rem] text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3 mt-[3.8025rem]">
+          <div className="footer-links translate-x-0 small:translate-x-[20%] text-[1rem] text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3 mt-2 small:mt-[3.8025rem]">
             {productCategories && productCategories?.length > 0 && (
               <div className="flex flex-col gap-y-2">
                 <span className="txt-small-plus txt-ui-fg-base">
