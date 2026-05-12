@@ -4,6 +4,7 @@ import Link from "next/link"
 import { getHomeV2Media } from "@lib/data/home-v2-media"
 import { listProducts } from "@lib/data/products"
 import PreviewProductCarousel from "./product-carousel"
+import CustomOrderButton from "@modules/home/components/custom-order-button"
 
 export const metadata: Metadata = {
   title: "Thai Vai Preview",
@@ -86,13 +87,16 @@ export default async function ThaiVibePreviewPage(props: {
             A visual-first landing page replica with image placeholders that can be swapped
             with your final product photography later.
           </p>
-          <Link
-            href={`/${countryCode}/store`}
-            className="self-start border border-[#0b4f3f] py-[0.64rem] px-[1.1rem] rounded-full no-underline uppercase tracking-[0.08em] text-[0.74rem] font-bold transition-all duration-150 ease-in bg-[#0b4f3f] text-[#f7f3ec] hover:-translate-y-px hover:scale-110 active:scale-95"
-            style={{ animation: "bounce-in 1s ease-out 0.4s forwards" }}
-          >
-            Browse Products
-          </Link>
+          <div className="flex gap-3 flex-wrap">
+            <Link
+              href={`/${countryCode}/store`}
+              className="self-start border border-[#0b4f3f] py-[0.64rem] px-[1.1rem] rounded-full no-underline uppercase tracking-[0.08em] text-[0.74rem] font-bold transition-all duration-150 ease-in bg-[#0b4f3f] text-[#f7f3ec] hover:-translate-y-px hover:scale-110 active:scale-95"
+              style={{ animation: "bounce-in 1s ease-out 0.4s forwards" }}
+            >
+              Browse Products
+            </Link>
+            <CustomOrderButton />
+          </div>
         </div>
         <div
           className="relative flex items-center justify-center overflow-hidden bg-[#f1d8d6] p-[clamp(1rem,2.2vw,2rem)]"

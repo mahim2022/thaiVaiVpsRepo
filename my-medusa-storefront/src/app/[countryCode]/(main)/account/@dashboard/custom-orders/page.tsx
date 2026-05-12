@@ -1,5 +1,4 @@
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
 
 import { listCustomOrders } from "@lib/data/custom-orders"
 import { retrieveCustomer } from "@lib/data/customer"
@@ -14,7 +13,7 @@ export default async function CustomOrdersPage() {
   const customer = await retrieveCustomer().catch(() => null)
 
   if (!customer) {
-    notFound()
+    return null
   }
 
   const orders = (await listCustomOrders().catch(() => [])) || []

@@ -100,13 +100,6 @@ const SideMenu = ({
                         </LocalizedClientLink>
                       </div>
                       <div className="flex items-center gap-4">
-                        <LocalizedClientLink
-                          href="/cart"
-                          onClick={close}
-                          className="text-[0.72rem] uppercase tracking-[0.14em] text-ui-fg-muted"
-                        >
-                          Bag (0)
-                        </LocalizedClientLink>
                         <button
                           data-testid="close-menu-button"
                           onClick={close}
@@ -197,24 +190,7 @@ const SideMenu = ({
                         </ul>
                       </div>
 
-                      <div>
-                        <p className="mb-4 text-[0.72rem] uppercase tracking-[0.18em] text-ui-fg-muted">
-                          Collections
-                        </p>
-                        <ul className="space-y-3">
-                          {featuredCollections.map((collection) => (
-                            <li key={collection.id}>
-                              <LocalizedClientLink
-                                href={`/collections/${collection.handle}`}
-                                onClick={close}
-                                className="text-[1.05rem] text-[#1A1A1A] transition-colors duration-150 hover:text-ui-fg-interactive"
-                              >
-                                {collection.title}
-                              </LocalizedClientLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {/* Collections section removed per request */}
 
                       <div>
                         <p className="mb-4 text-[0.72rem] uppercase tracking-[0.18em] text-ui-fg-muted">
