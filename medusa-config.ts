@@ -25,8 +25,8 @@ module.exports = defineConfig({
                   ".localhost",
                   "127.0.0.1",
                   "159.65.10.177",
-                  "summithire.tech",
-                  "www.summithire.tech",
+                  "thaibhai.shop",
+                  "www.thaibhai.shop",
                   ...adminAllowedHosts,
                 ],
                 hmr: {

@@ -35,7 +35,7 @@ export default function CustomerServicePage() {
           <section>
             <h2 className="text-large-semi mb-2">Contact</h2>
             <p className="text-base-regular text-ui-fg-subtle">
-              Email: support@summithire.tech
+              Email: support@thaibhai.shop
             </p>
           </section>
         </div>

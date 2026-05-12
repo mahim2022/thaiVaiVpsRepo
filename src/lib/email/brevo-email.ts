@@ -58,7 +58,7 @@ function getTimeoutMs() {
 
 function getSenderConfig() {
   return {
-    email: process.env.BREVO_SENDER_EMAIL || "noreply@summithire.tech",
+    email: process.env.BREVO_SENDER_EMAIL || "noreply@thaibhai.shop",
     name: process.env.BREVO_SENDER_NAME || "Summit Hire",
   }
 }

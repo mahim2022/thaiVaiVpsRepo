@@ -1073,7 +1073,7 @@ This comes from the Medusa admin Vite host allowlist.
 Set `ADMIN_ALLOWED_HOSTS` in backend `.env` as a comma-separated list of domains and rebuild the medusa container:
 
 ```sh
-echo 'ADMIN_ALLOWED_HOSTS=summithire.tech,www.summithire.tech' >> /root/thaiVaiEcom2.0/.env
+echo 'ADMIN_ALLOWED_HOSTS=thaibhai.shop,www.thaibhai.shop' >> /root/thaiVaiEcom2.0/.env
 cd /root/thaiVaiEcom2.0
 docker compose up -d --build medusa
 ```

@@ -1,9 +1,9 @@
-# Domain Setup Runbook - summithire.tech
+# Domain Setup Runbook - thaibhai.shop
 
 This document records the full process used to bring the Medusa backend and storefront live on:
 
-- https://summithire.tech (primary)
-- https://www.summithire.tech (redirect to primary)
+- https://thaibhai.shop (primary)
+- https://www.thaibhai.shop (redirect to primary)
 
 ## 1) What needed to be done
 
@@ -27,7 +27,7 @@ Required records:
 
 2. CNAME record
 - Host/Name: www
-- Value/Target: summithire.tech
+- Value/Target: thaibhai.shop
 - TTL: default (28800 is fine)
 
 Optional recommended record:
@@ -47,10 +47,10 @@ Notes:
 
 Configured in nginx/default.conf:
 
-1. server_name includes summithire.tech and www.summithire.tech.
+1. server_name includes thaibhai.shop and www.thaibhai.shop.
 2. Port 80 redirects all traffic to HTTPS.
-3. https://www.summithire.tech redirects to https://summithire.tech.
-4. https://summithire.tech routes:
+3. https://www.thaibhai.shop redirects to https://thaibhai.shop.
+4. https://thaibhai.shop routes:
 - /, storefront -> http://storefront:8000
 - /store/, /admin/, /auth/, /static/, /app, backend -> http://medusa:9000
 
@@ -58,23 +58,23 @@ Configured in nginx/default.conf:
 
 Domain-related values:
 
-- STORE_CORS includes https://summithire.tech and https://www.summithire.tech
+- STORE_CORS includes https://thaibhai.shop and https://www.thaibhai.shop
 - ADMIN_CORS includes both domain variants
 - AUTH_CORS includes both domain variants
 - COOKIE_SECURE=true
-- MEDUSA_BACKEND_URL=https://summithire.tech
-- MEDUSA_FILE_BACKEND_URL=https://summithire.tech/static
+- MEDUSA_BACKEND_URL=https://thaibhai.shop
+- MEDUSA_FILE_BACKEND_URL=https://thaibhai.shop/static
 
 ### Storefront env (my-medusa-storefront/.env)
 
 Domain-related values:
 
-- MEDUSA_BACKEND_URL=https://summithire.tech
-- NEXT_PUBLIC_BASE_URL=https://summithire.tech
+- MEDUSA_BACKEND_URL=https://thaibhai.shop
+- NEXT_PUBLIC_BASE_URL=https://thaibhai.shop
 
 ### Compose/Nginx fallback cert generation
 
-In docker-compose.yml (nginx service command), self-signed fallback cert subject/SAN is set to summithire.tech and www.summithire.tech. This is only fallback; production should use Let's Encrypt cert files.
+In docker-compose.yml (nginx service command), self-signed fallback cert subject/SAN is set to thaibhai.shop and www.thaibhai.shop. This is only fallback; production should use Let's Encrypt cert files.
 
 ## 4) Commands used for deployment
 
@@ -88,10 +88,10 @@ docker compose up -d --build
 ### Check DNS propagation
 
 ```sh
-dig +short A summithire.tech @1.1.1.1
-dig +short A www.summithire.tech @1.1.1.1
-dig +short A summithire.tech @8.8.8.8
-dig +short A www.summithire.tech @8.8.8.8
+dig +short A thaibhai.shop @1.1.1.1
+dig +short A www.thaibhai.shop @1.1.1.1
+dig +short A thaibhai.shop @8.8.8.8
+dig +short A www.thaibhai.shop @8.8.8.8
 ```
 
 ### Issue or expand Let's Encrypt cert (standalone)
@@ -99,9 +99,9 @@ dig +short A www.summithire.tech @8.8.8.8
 ```sh
 cd /root/thaiVaiEcom2.0
 docker compose stop nginx
-certbot certonly --standalone --expand -d summithire.tech -d www.summithire.tech --agree-tos -m admin@summithire.tech --non-interactive
-cp /etc/letsencrypt/live/summithire.tech/fullchain.pem nginx/certs/server.crt
-cp /etc/letsencrypt/live/summithire.tech/privkey.pem nginx/certs/server.key
+certbot certonly --standalone --expand -d thaibhai.shop -d www.thaibhai.shop --agree-tos -m admin@thaibhai.shop --non-interactive
+cp /etc/letsencrypt/live/thaibhai.shop/fullchain.pem nginx/certs/server.crt
+cp /etc/letsencrypt/live/thaibhai.shop/privkey.pem nginx/certs/server.key
 chmod 600 nginx/certs/server.key
 docker compose up -d nginx
 ```
@@ -113,20 +113,20 @@ If this is first issuance and not expansion, the same command works without --ex
 Run:
 
 ```sh
-curl -I https://summithire.tech
-curl -I https://www.summithire.tech
-curl -I https://summithire.tech/app
-curl -I https://summithire.tech/store/regions
+curl -I https://thaibhai.shop
+curl -I https://www.thaibhai.shop
+curl -I https://thaibhai.shop/app
+curl -I https://thaibhai.shop/store/regions
 openssl x509 -in /root/thaiVaiEcom2.0/nginx/certs/server.crt -noout -ext subjectAltName
 ```
 
 Expected:
 
-1. summithire.tech returns HTTPS response (storefront may redirect to locale path such as /dk).
-2. www.summithire.tech returns 301 to https://summithire.tech/.
+1. thaibhai.shop returns HTTPS response (storefront may redirect to locale path such as /dk).
+2. www.thaibhai.shop returns 301 to https://thaibhai.shop/.
 3. /app returns 200 from Medusa admin.
 4. /store/regions is reachable (may return 400 without required publishable key header).
-5. Certificate SAN contains both DNS:summithire.tech and DNS:www.summithire.tech.
+5. Certificate SAN contains both DNS:thaibhai.shop and DNS:www.thaibhai.shop.
 
 ## 6) Troubleshooting observed during setup
 
@@ -159,7 +159,7 @@ docker compose up -d nginx
 
 Completed:
 
-1. HTTPS valid on summithire.tech.
-2. HTTPS valid on www.summithire.tech.
-3. Redirect active: https://www.summithire.tech -> https://summithire.tech.
-4. Admin route live at https://summithire.tech/app.
+1. HTTPS valid on thaibhai.shop.
+2. HTTPS valid on www.thaibhai.shop.
+3. Redirect active: https://www.thaibhai.shop -> https://thaibhai.shop.
+4. Admin route live at https://thaibhai.shop/app.

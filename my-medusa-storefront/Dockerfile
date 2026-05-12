@@ -11,7 +11,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ARG NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-ARG MEDUSA_BACKEND_URL=https://summithire.tech
+ARG MEDUSA_BACKEND_URL=https://thaibhai.shop
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
