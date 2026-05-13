@@ -110,10 +110,26 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
     return res.status(400).json({ message: normalized.error })
   }
 
-  await customOrderService.updateCustomOrders({
-    id: req.params.id,
-    ...normalized.payload,
-  })
+  // Build update object with proper field names
+  const updateData: any = {}
+  if (normalized.payload.status) {
+    updateData.status = normalized.payload.status
+  }
+  if (normalized.payload.admin_reply !== undefined) {
+    updateData.admin_reply = normalized.payload.admin_reply || null
+  }
+
+  // Use raw SQL to ensure persistence
+  const connection = req.scope.resolve("db").connection
+  const updates = Object.keys(updateData).map((key, idx) => `${key} = $${idx + 1}`).join(", ")
+  const values = Object.values(updateData)
+  
+  if (updates) {
+    await connection.query(
+      `UPDATE custom_order SET ${updates} WHERE id = $${values.length + 1}`,
+      [...values, req.params.id]
+    )
+  }
 
   const custom_order = await customOrderService.retrieveCustomOrder(req.params.id)
 

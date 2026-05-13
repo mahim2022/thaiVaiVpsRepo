@@ -105,28 +105,39 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       access: "public",
     }))
   )
+  // Log created files for debugging
+  console.debug("Created files:", createdFiles)
 
-  const newAttachments: CustomOrderAttachment[] = createdFiles.map(
-    (created: { id: string; url: string }, index: number) => ({
-      file_id: created.id,
-      url: normalizeAttachmentUrl(created.url, publicBaseUrl),
-      filename: body.files[index].filename,
-      mime_type: body.files[index].mime_type,
-      created_at: new Date().toISOString(),
+  try {
+    const newAttachments: CustomOrderAttachment[] = createdFiles.map(
+      (created: { id: string; url: string }, index: number) => ({
+        file_id: created.id,
+        url: normalizeAttachmentUrl(created.url, publicBaseUrl),
+        filename: body.files[index].filename,
+        mime_type: body.files[index].mime_type,
+        created_at: new Date().toISOString(),
+      })
+    )
+
+    const mergedAttachments = [...currentAttachments, ...newAttachments]
+
+    console.debug("Merged attachments to persist:", mergedAttachments)
+
+    await customOrderService.updateCustomOrders({
+      id: req.params.id,
+      attachments: mergedAttachments,
     })
-  )
 
-  await customOrderService.updateCustomOrders({
-    id: req.params.id,
-    attachments: [...currentAttachments, ...newAttachments],
-  })
+    const updated = await customOrderService.retrieveCustomOrder(req.params.id)
 
-  const updated = await customOrderService.retrieveCustomOrder(req.params.id)
-
-  return res.status(200).json({
-    custom_order: {
-      ...updated,
-      attachments: normalizeAttachments(updated.attachments, publicBaseUrl),
-    },
-  })
+    return res.status(200).json({
+      custom_order: {
+        ...updated,
+        attachments: normalizeAttachments(updated.attachments, publicBaseUrl),
+      },
+    })
+  } catch (err: any) {
+    console.error("Failed to create or persist attachments:", err)
+    return res.status(500).json({ message: err?.message || "Failed to save attachments" })
+  }
 }

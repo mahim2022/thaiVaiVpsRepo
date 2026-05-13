@@ -135,19 +135,28 @@ export const createCustomOrder = async (
           }))
         )
 
-        const uploadRes = await sdk.client.fetch<StoreCustomOrderResponse>(
-          `/store/custom-orders/${custom_order.id}/attachments`,
-          {
-            method: "POST",
-            headers,
-            body: {
-              files: serializedFiles,
-            },
-            cache: "no-store",
-          }
-        )
+        try {
+          const uploadRes = await sdk.client.fetch<StoreCustomOrderResponse>(
+            `/store/custom-orders/${custom_order.id}/attachments`,
+            {
+              method: "POST",
+              headers,
+              body: {
+                files: serializedFiles,
+              },
+              cache: "no-store",
+            }
+          )
 
-        custom_order = uploadRes.custom_order
+          custom_order = uploadRes.custom_order
+        } catch (uploadErr: any) {
+          console.error("Attachment upload failed:", uploadErr)
+          return {
+            success: false,
+            error: uploadErr?.message || "Attachment upload failed",
+            custom_order: null,
+          }
+        }
       }
 
       const cacheTag = await getCacheTag("custom-orders")

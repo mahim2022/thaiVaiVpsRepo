@@ -71,11 +71,34 @@ export const normalizeAttachmentUrl = (
   }
 
   if (inputUrl.startsWith("/")) {
-    if (!publicBaseUrl) {
-      return inputUrl
+    const fileBackend = process.env.MEDUSA_FILE_BACKEND_URL?.trim()
+    const base = publicBaseUrl || fileBackend
+    const normalizedPath = inputUrl.startsWith("/server/static/")
+      ? inputUrl.replace(/^\/server\/static\//, "/static/")
+      : inputUrl
+
+    if (!base) {
+      return normalizedPath
     }
 
-    return `${publicBaseUrl.replace(/\/$/, "")}${inputUrl}`
+    try {
+      const parsedBase = new URL(base)
+      const basePath = parsedBase.pathname.replace(/\/$/, "")
+      const origin = `${parsedBase.protocol}//${parsedBase.host}`
+
+      // Avoid duplicating "/static" when both base and path already include it.
+      if (basePath && basePath !== "/") {
+        if (normalizedPath === basePath || normalizedPath.startsWith(`${basePath}/`)) {
+          return `${origin}${normalizedPath}`
+        }
+
+        return `${origin}${basePath}${normalizedPath}`
+      }
+
+      return `${origin}${normalizedPath}`
+    } catch {
+      return `${base.replace(/\/$/, "")}${normalizedPath}`
+    }
   }
 
   try {

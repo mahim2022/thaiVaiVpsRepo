@@ -63,14 +63,14 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
   }, [selectedFilesKey])
 
   useEffect(() => {
-    if (state.success && state.custom_order) {
+    if (state?.success && state?.custom_order) {
       setShowSuccess(true)
       setSelectedFiles([])
       setAttachmentError(null)
       setSelectedFilePreviews([])
       router.refresh()
     }
-  }, [state.success, state.custom_order, router])
+  }, [state, router])
 
   const onAttachmentChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
@@ -121,7 +121,7 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
       </div>
 
       <div className="flex flex-col gap-y-10">
-        <form action={formAction} encType="multipart/form-data" className="flex flex-col gap-y-4">
+        <form action={formAction} className="flex flex-col gap-y-4">
           <Heading level="h2">New Request</Heading>
           <Input
             label="Title"
@@ -194,7 +194,7 @@ export default function CustomOrders({ orders }: CustomOrdersProps) {
             </SubmitButton>
           </div>
 
-          {!state.success && state.error && (
+          {!state?.success && state?.error && (
             <Text className="text-base-regular text-rose-500 text-right">
               {state.error}
             </Text>

@@ -67,6 +67,9 @@ export default defineMiddlewares({
         authenticate("customer", ["session", "bearer"]),
         validateAndTransformBody(uploadCustomOrderAttachmentsSchema),
       ],
+      bodyParser: {
+        sizeLimit: "20mb",
+      },
     },
     {
       matcher: "/admin/custom-orders",
