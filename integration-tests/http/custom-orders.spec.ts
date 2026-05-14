@@ -56,11 +56,17 @@ const getTokenPayload = (token: string): AuthTokenPayload => {
 const uniqueEmail = (prefix: string) => `${prefix}+${Date.now()}@example.com`
 
 const readPublishableApiKey = () => {
+  if (process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY) {
+    return process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+  }
+
   const contents = readFileSync("my-medusa-storefront/.env", "utf8")
   const match = contents.match(/^NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=(.+)$/m)
 
   if (!match?.[1]) {
-    throw new Error("Missing publishable API key in my-medusa-storefront/.env")
+    throw new Error(
+      "Missing publishable API key in my-medusa-storefront/.env and NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY env var"
+    )
   }
 
   return match[1].trim()
@@ -157,8 +163,8 @@ const registerCustomer = async (publishableApiKey: string): Promise<CustomerAuth
 }
 
 const loginAdmin = async () => {
-  const email = "admin@example.com"
-  const password = "supersecret"
+  const email = process.env.ADMIN_EMAIL || "admin@example.com"
+  const password = process.env.ADMIN_PASSWORD || "supersecret"
 
   const loginResponse = await requestJson<{ token: string }>(
     "/auth/user/emailpass",
@@ -500,6 +506,43 @@ describe("Custom orders HTTP API", () => {
     expect(invalidTransitionResponse.status).toBe(400)
     expect(invalidTransitionResponse.data.message).toContain(
       "Invalid status transition"
+    )
+  })
+
+  it("admin can transition a custom order to in_review with admin_reply", async () => {
+    const publishableApiKey = readPublishableApiKey()
+
+    const customer = await registerCustomer(publishableApiKey)
+
+    const createdOrder = await createCustomOrder(
+      publishableApiKey,
+      customer.token,
+      `transition-${Date.now()}`
+    )
+
+    const orderId = createdOrder.id
+
+    const admin = await loginAdmin()
+
+    const adminPatchResponse = await requestJson<{ custom_order: CustomOrder }>(
+      `/admin/custom-orders/${orderId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${admin.token}`,
+        },
+        body: JSON.stringify({
+          status: "in_review",
+          admin_reply: "Focused transition test",
+        }),
+      }
+    )
+
+    expect(adminPatchResponse.status).toBe(200)
+    expect(adminPatchResponse.data.custom_order.status).toBe("in_review")
+    expect(adminPatchResponse.data.custom_order.admin_reply).toBe(
+      "Focused transition test"
     )
   })
 })

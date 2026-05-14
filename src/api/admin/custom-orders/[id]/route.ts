@@ -25,7 +25,7 @@ const buildUpdatePayload = (
   body: {
     status?: string
     admin_reply?: string
-  }
+  } = {}
 ) => {
   const nextStatus = typeof body.status === "string" ? body.status.trim() : undefined
   const adminReply =
@@ -100,10 +100,10 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
 
   const normalized = buildUpdatePayload(
     current.status,
-    req.validatedBody as {
+    (req.validatedBody as {
       status?: string
       admin_reply?: string
-    }
+    }) || {}
   )
 
   if ("error" in normalized) {
@@ -111,7 +111,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
   }
 
   // Build update object with proper field names
-  const updateData: any = {}
+  const updateData: Record<string, string | null> = {}
   if (normalized.payload.status) {
     updateData.status = normalized.payload.status
   }
@@ -119,16 +119,11 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
     updateData.admin_reply = normalized.payload.admin_reply || null
   }
 
-  // Use raw SQL to ensure persistence
-  const connection = req.scope.resolve("db").connection
-  const updates = Object.keys(updateData).map((key, idx) => `${key} = $${idx + 1}`).join(", ")
-  const values = Object.values(updateData)
-  
-  if (updates) {
-    await connection.query(
-      `UPDATE custom_order SET ${updates} WHERE id = $${values.length + 1}`,
-      [...values, req.params.id]
-    )
+  if (Object.keys(updateData).length > 0) {
+    await customOrderService.updateCustomOrders({
+      id: req.params.id,
+      ...updateData,
+    })
   }
 
   const custom_order = await customOrderService.retrieveCustomOrder(req.params.id)
