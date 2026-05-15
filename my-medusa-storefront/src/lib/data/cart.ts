@@ -24,7 +24,7 @@ import { getLocale } from "@lib/data/locale-actions"
 export async function retrieveCart(cartId?: string, fields?: string) {
   const id = cartId || (await getCartId())
   fields ??=
-    "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name"
+    "*items, *region, *items.product, *items.product.images, *items.variant, *items.variant.product, *items.variant.product.images, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name"
 
   if (!id) {
     return null
@@ -393,61 +393,38 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
  * @returns The cart object if the order was successful, or null if not.
  */
 export async function placeOrder(idempotencyKey?: string, cartId?: string) {
-  try {
-    const id = cartId || (await getCartId())
+  const id = cartId || (await getCartId())
 
-    if (!id) {
-      throw new Error("No existing cart found when placing an order")
-    }
+  if (!id) {
+    throw new Error("No existing cart found when placing an order")
+  }
 
-    const headers = {
-      ...(await getAuthHeaders()),
-      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
-    }
+  const headers = {
+    ...(await getAuthHeaders()),
+    ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+  }
 
-    const cartRes = await sdk.store.cart.complete(id, {}, headers)
-
-    if (cartRes?.type === "order") {
+  const cartRes = await sdk.store.cart
+    .complete(id, {}, headers)
+    .then(async (cartRes) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
+      return cartRes
+    })
+    .catch(medusaError)
 
-      const countryCode =
-        cartRes.order.shipping_address?.country_code?.toLowerCase()
+  if (cartRes?.type === "order") {
+    const countryCode =
+      cartRes.order.shipping_address?.country_code?.toLowerCase()
 
-      const orderCacheTag = await getCacheTag("orders")
-      revalidateTag(orderCacheTag)
+    const orderCacheTag = await getCacheTag("orders")
+    revalidateTag(orderCacheTag)
 
-      removeCartId()
-      redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
-    }
-
-    return cartRes.cart
-  } catch (error: any) {
-    // Handle errors that come from the API response
-    if (error.response) {
-      const message =
-        error.response.data?.message ||
-        error.response.data ||
-        "Failed to complete order"
-      
-      throw new Error(
-        (typeof message === "string" ? message : JSON.stringify(message)).charAt(
-          0
-        ).toUpperCase() +
-        (typeof message === "string" ? message : JSON.stringify(message)).slice(1) +
-        "."
-      )
-    }
-    
-    // Handle redirect errors (these should not be caught)
-    if (error.name === "NEXT_REDIRECT") {
-      throw error
-    }
-
-    // Handle other errors with a message
-    const errorMessage = error?.message || "An unexpected error occurred during checkout"
-    throw new Error(errorMessage)
+    removeCartId()
+    redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
   }
+
+  return cartRes.cart
 }
 
 /**
