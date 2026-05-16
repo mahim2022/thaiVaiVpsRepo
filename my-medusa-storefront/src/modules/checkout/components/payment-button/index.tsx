@@ -73,18 +73,14 @@ const StripePaymentButton = ({
 
     orderSubmissionInFlight.current = true
 
-    try {
-      await placeOrder(getOrderSubmissionKey())
-    } catch (err: any) {
-      const errorMessage =
-        err?.message ||
-        err?.toString?.() ||
-        "Failed to place order. Please try again."
-      setErrorMessage(errorMessage)
-    } finally {
-      orderSubmissionInFlight.current = false
-      setSubmitting(false)
-    }
+    await placeOrder(getOrderSubmissionKey())
+      .catch((err) => {
+        setErrorMessage(err.message)
+      })
+      .finally(() => {
+        orderSubmissionInFlight.current = false
+        setSubmitting(false)
+      })
   }
 
   const stripe = useStripe()
@@ -198,18 +194,14 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
 
     orderSubmissionInFlight.current = true
 
-    try {
-      await placeOrder(getOrderSubmissionKey())
-    } catch (err: any) {
-      const errorMessage =
-        err?.message ||
-        err?.toString?.() ||
-        "Failed to place order. Please try again."
-      setErrorMessage(errorMessage)
-    } finally {
-      orderSubmissionInFlight.current = false
-      setSubmitting(false)
-    }
+    await placeOrder(getOrderSubmissionKey())
+      .catch((err) => {
+        setErrorMessage(err.message)
+      })
+      .finally(() => {
+        orderSubmissionInFlight.current = false
+        setSubmitting(false)
+      })
   }
 
   const handlePayment = () => {

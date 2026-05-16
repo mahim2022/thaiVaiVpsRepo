@@ -156,6 +156,8 @@ export async function sendBrevoTemplateEmail(
 
   const payload = buildEmailPayload(input)
 
+  logger?.info?.(`[brevo-email] sending ${input.templateKey} to ${input.to} with params: ${JSON.stringify(payload.params, null, 2)}`)
+
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), getTimeoutMs())
 

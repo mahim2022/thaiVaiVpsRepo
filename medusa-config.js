@@ -42,6 +42,7 @@ module.exports = defineConfig({
 
 	projectConfig: {
 		databaseUrl: process.env.DATABASE_URL,
+		redisUrl: process.env.REDIS_URL || "redis://redis:6379",
 		cookieOptions: {
 			secure: cookieSecure,
 			sameSite: "lax",
@@ -69,17 +70,22 @@ module.exports = defineConfig({
 		{
 			resolve: "./src/modules/custom-order/index.js",
 		},
-		// Use distributed locking (PostgreSQL) to avoid in-memory lock contention under concurrency
+		// Use distributed locking (Redis) to avoid in-memory lock contention under concurrency
 		{
 			resolve: "@medusajs/locking",
 			options: {
-				provider: {
-					resolve: "@medusajs/locking-postgres",
-					options: {
-						acquireTimeoutMs: Number(process.env.LOCK_ACQUIRE_TIMEOUT_MS || 10000),
-						lockTtlMs: Number(process.env.LOCK_TTL_MS || 30000),
+				providers: [
+					{
+						resolve: "@medusajs/locking-redis",
+						id: "redis",
+						is_default: true,
+						options: {
+							redisUrl: process.env.REDIS_URL || "redis://redis:6379",
+							acquireTimeoutMs: Number(process.env.LOCK_ACQUIRE_TIMEOUT_MS || 10000),
+							lockTtlMs: Number(process.env.LOCK_TTL_MS || 30000),
+						},
 					},
-				},
+				],
 			},
 		},
 		{

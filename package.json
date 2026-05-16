@@ -44,6 +44,7 @@
     "@medusajs/admin-sdk": "2.13.5",
     "@medusajs/cli": "2.13.5",
     "@medusajs/framework": "2.13.5",
+    "@medusajs/locking-redis": "^2.15.2",
     "@medusajs/medusa": "2.13.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
