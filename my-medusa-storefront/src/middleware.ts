@@ -76,9 +76,9 @@ async function getCountryCode(
 
     const vercelCountryCode = request.headers
       .get("x-vercel-ip-country")
-      ?.toLowerCase()
+      ?.toUpperCase()
 
-    const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
+    const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toUpperCase()
 
     if (urlCountryCode && regionMap.has(urlCountryCode)) {
       countryCode = urlCountryCode
@@ -114,7 +114,7 @@ export async function middleware(request: NextRequest) {
 
   const countryCode = regionMap && (await getCountryCode(request, regionMap))
 
-  const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
+  const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toUpperCase()
 
   const urlHasCountryCode =
     !!urlCountryCode && regionMap.has(urlCountryCode)
@@ -148,6 +148,10 @@ export async function middleware(request: NextRequest) {
   if (!urlHasCountryCode && countryCode) {
     const redirectUrl = `${request.nextUrl.origin}/${countryCode}${redirectPath}${queryString}`
     response = NextResponse.redirect(redirectUrl, 307)
+    // Set the cache id cookie on the redirect so subsequent requests don't re-trigger redirects.
+    response.cookies.set("_medusa_cache_id", cacheId, {
+      maxAge: 60 * 60 * 24,
+    })
   } else if (!urlHasCountryCode && !countryCode) {
     // Handle case where no valid country code exists (empty regions)
     return new NextResponse(
