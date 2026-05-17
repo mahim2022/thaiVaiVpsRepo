@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
+const DEFAULT_REGION = (process.env.NEXT_PUBLIC_DEFAULT_REGION || "us").toUpperCase()
 
 // In-memory cache (Note: may not persist across Edge invocations)
 let regionMapCache: Map<string, HttpTypes.StoreRegion> | null = null
@@ -43,7 +43,10 @@ async function getRegionMap(): Promise<Map<string, HttpTypes.StoreRegion>> {
 
   regions.forEach((region: HttpTypes.StoreRegion) => {
     region.countries?.forEach((c) => {
-      map.set(c.iso_2 ?? "", region)
+      const code = (c.iso_2 ?? "").toUpperCase()
+      if (code) {
+        map.set(code, region)
+      }
     })
   })
 
@@ -65,7 +68,7 @@ export async function middleware(request: NextRequest) {
 
   // Check if path already has country code
   const pathParts = pathname.split("/").filter(Boolean)
-  const urlCountryCode = pathParts[0]?.toLowerCase()
+  const urlCountryCode = pathParts[0]?.toUpperCase()
 
   // Get available regions
   const regionMap = await getRegionMap()
@@ -86,7 +89,7 @@ export async function middleware(request: NextRequest) {
 
   // Priority:  1. URL country (if exists) 2. Vercel geo-IP header
   // 3. DEFAULT_REGION 4. First available region
-  const vercelCountry = request.headers.get("x-vercel-ip-country")?.toLowerCase()
+  const vercelCountry = request.headers.get("x-vercel-ip-country")?.toUpperCase()
 
   if (urlCountryCode && regionMap.has(urlCountryCode)) {
     targetCountry = urlCountryCode
