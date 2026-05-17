@@ -57,6 +57,7 @@ const StripePaymentButton = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const orderSubmissionKey = useRef<string | null>(null)
   const orderSubmissionInFlight = useRef(false)
+  const paymentClickLocked = useRef(false)
 
   const getOrderSubmissionKey = () => {
     if (!orderSubmissionKey.current) {
@@ -79,6 +80,7 @@ const StripePaymentButton = ({
       })
       .finally(() => {
         orderSubmissionInFlight.current = false
+        paymentClickLocked.current = false
         setSubmitting(false)
       })
   }
@@ -94,13 +96,15 @@ const StripePaymentButton = ({
   const disabled = !stripe || !elements ? true : false
 
   const handlePayment = async () => {
-    if (submitting || orderSubmissionInFlight.current) {
+    if (submitting || orderSubmissionInFlight.current || paymentClickLocked.current) {
       return
     }
 
+    paymentClickLocked.current = true
     setSubmitting(true)
 
     if (!stripe || !elements || !card || !cart) {
+      paymentClickLocked.current = false
       setSubmitting(false)
       return
     }
@@ -139,6 +143,7 @@ const StripePaymentButton = ({
           }
 
           setErrorMessage(error.message || null)
+          paymentClickLocked.current = false
           return
         }
 
@@ -149,6 +154,7 @@ const StripePaymentButton = ({
           return onPaymentCompleted()
         }
 
+        paymentClickLocked.current = false
         return
       })
   }
@@ -169,6 +175,7 @@ const StripePaymentButton = ({
         error={errorMessage}
         data-testid="stripe-payment-error-message"
       />
+        type="button"
     </>
   )
 }
@@ -178,6 +185,7 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const orderSubmissionKey = useRef<string | null>(null)
   const orderSubmissionInFlight = useRef(false)
+  const paymentClickLocked = useRef(false)
 
   const getOrderSubmissionKey = () => {
     if (!orderSubmissionKey.current) {
@@ -205,10 +213,11 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   }
 
   const handlePayment = () => {
-    if (submitting || orderSubmissionInFlight.current) {
+    if (submitting || orderSubmissionInFlight.current || paymentClickLocked.current) {
       return
     }
 
+    paymentClickLocked.current = true
     setSubmitting(true)
 
     onPaymentCompleted()
@@ -230,6 +239,7 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
         error={errorMessage}
         data-testid="manual-payment-error-message"
       />
+        type="button"
     </>
   )
 }

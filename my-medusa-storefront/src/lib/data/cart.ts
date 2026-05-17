@@ -16,6 +16,8 @@ import {
 import { getRegion } from "./regions"
 import { getLocale } from "@lib/data/locale-actions"
 
+const cartCompletionPromises = new Map<string, Promise<any>>()
+
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
  * @param cartId - optional - The ID of the cart to retrieve.
@@ -404,7 +406,25 @@ export async function placeOrder(idempotencyKey?: string, cartId?: string) {
     ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
   }
 
-  const cartRes = await sdk.store.cart
+  const inFlightCompletion = cartCompletionPromises.get(id)
+  if (inFlightCompletion) {
+    const cartRes = await inFlightCompletion.catch(medusaError)
+
+    if (cartRes?.type === "order") {
+      const countryCode =
+        cartRes.order.shipping_address?.country_code?.toLowerCase()
+
+      const orderCacheTag = await getCacheTag("orders")
+      revalidateTag(orderCacheTag)
+
+      removeCartId()
+      redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
+    }
+
+    return cartRes?.cart
+  }
+
+  const cartCompletionPromise = sdk.store.cart
     .complete(id, {}, headers)
     .then(async (cartRes) => {
       const cartCacheTag = await getCacheTag("carts")
@@ -412,6 +432,12 @@ export async function placeOrder(idempotencyKey?: string, cartId?: string) {
       return cartRes
     })
     .catch(medusaError)
+
+  cartCompletionPromises.set(id, cartCompletionPromise)
+
+  const cartRes = await cartCompletionPromise.finally(() => {
+    cartCompletionPromises.delete(id)
+  })
 
   if (cartRes?.type === "order") {
     const countryCode =
