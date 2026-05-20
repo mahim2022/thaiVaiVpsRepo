@@ -22,8 +22,10 @@ const LocalizedClientLink = ({
 }) => {
   const { countryCode } = useParams()
 
+  const normalized = countryCode ? String(countryCode).toUpperCase() : ""
+
   return (
-    <Link href={`/${countryCode}${href}`} {...props}>
+    <Link href={`/${normalized}${href}`} {...props}>
       {children}
     </Link>
   )
